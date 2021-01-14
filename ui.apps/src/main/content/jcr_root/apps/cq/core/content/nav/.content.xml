@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="nt:unstructured">
+    <tools jcr:primaryType="nt:unstructured">
+        <deployment jcr:primaryType="nt:unstructured">
+            <content-impex
+                jcr:description="Manage content import/export"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Content Impex"
+                href="/crx/packmgr"
+                icon="data"
+                id="granite-packages"
+                target="_blank"/>
+        </deployment>
+    </tools>
+</jcr:root>
