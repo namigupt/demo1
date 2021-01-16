@@ -49,7 +49,7 @@ import org.osgi.service.component.annotations.Component;
         service = Servlet.class,
         property = {
 
-                "sling.servlet.paths=/bin/services/demo",
+                "sling.servlet.paths=/bin/services/demo1",
                 "sling.servlet.methods=GET"
         }
 )

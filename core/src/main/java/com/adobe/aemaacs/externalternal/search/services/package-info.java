@@ -1,1 +1,0 @@
-package com.adobe.aemaacs.externalternal.search.services;

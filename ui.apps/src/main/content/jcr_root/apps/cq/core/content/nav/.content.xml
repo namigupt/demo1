@@ -6,11 +6,19 @@
             <content-impex
                 jcr:description="Manage content import/export"
                 jcr:primaryType="nt:unstructured"
-                jcr:title="Content Impex"
-                href="/crx/packmgr"
+                jcr:title="Content Impex Jobs"
+                href="/apps/aemaacs-administration-app/content/jobs/console.html/apps/aemaacs-administration-app/templates/admin/impexjobconfig"
                 icon="data"
                 id="granite-packages"
                 target="_blank"/>
         </deployment>
+        <cloudservices jcr:primaryType="nt:unstructured">
+            <cloud-mgr-git-config
+                jcr:description="Cloud Manager - GIT Config"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Cloud Manager - GIT Config"
+                href="/apps/aemaacs-administration-app/content/cloudservice/console.html/apps/aemaacs-administration-app/templates/admin/gitcloudconfig"
+                icon="cloud"/>
+        </cloudservices>
     </tools>
 </jcr:root>
