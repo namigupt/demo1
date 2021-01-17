@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Map.Entry;
 
-import javax.jcr.Node;
 import javax.servlet.Servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -35,8 +34,6 @@ import org.apache.sling.servlets.post.HtmlResponse;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.day.cq.wcm.api.PageManager;
 
 @Component(
 		service = Servlet.class, 
@@ -66,12 +63,10 @@ public class ConfigUpdateServlet extends SlingAllMethodsServlet {
 				valueMap.put(entry.getKey(),
 						entry.getValue() == null || entry.getValue().length == 0 ? "" : entry.getValue()[0]);
 			}
+			valueMap.put("cq:lastModified", Calendar.getInstance());
 			if (resolver.hasChanges()) {
 				resolver.commit();
 			}
-			PageManager pageManager = resolver.adaptTo(PageManager.class);
-			pageManager.touch(request.getResource().getParent().adaptTo(Node.class), true, Calendar.getInstance(), false);
-			
 			response.setContentType("text/plain");
 			resp.send(response, true);
 		} catch (Exception e) {

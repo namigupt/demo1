@@ -1,11 +1,6 @@
 package com.adobe.aemaacs.internal.git.services;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -20,16 +15,14 @@ import com.adobe.aemaacs.external.git.services.GitWrapperService;
 public class GitWrapperServiceImpl implements GitWrapperService {
 
 	@Override
-	public Git cloneRepo(GitProfile gitProfile) {
-		String folderName = Instant.now().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE);
+	public Git cloneRepo(GitProfile gitProfile, String tmpFolder) {
 		try {
-			String tmpFolder = Files.createTempDirectory(folderName).toString();
 			Git git = Git.cloneRepository().setURI(gitProfile.getRepository())
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
 					.setDirectory(new File(tmpFolder)).call();
 			return git;
-		} catch (IOException | GitAPIException e) {
+		} catch (GitAPIException e) {
 			throw new GitException(e.getMessage(), "GIT101");
 		}
 	}
@@ -44,24 +37,26 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 	}
 
 	@Override
-	public void addArtifacts(String[] patterns, Git git) {
+	public void addAndCommitArtifacts(String[] patterns, Git git) {
 		try {
 			for (String pattern : patterns) {
 				git.add().addFilepattern(pattern).call();
 			}
+			git.commit().call();
 		} catch (Exception e) {
 			throw new GitException(e.getMessage(), "GIT102");
 		}
 	}
 
 	@Override
-	public void pushRepo(GitProfile gitProfile, Git git) {
+	public void pushRepo(GitProfile gitProfile, Git git, String targetBranch) {
 		try {
-			git.commit().call();
 			git.push()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
-					.setRemote("origin").setRefSpecs(new RefSpec("demo:demo")).call();
+					.setRemote("origin")
+					.setRefSpecs(new RefSpec(targetBranch+":"+targetBranch))
+					.call();
 		} catch (Exception e) {
 			throw new GitException(e.getMessage(), "GIT103");
 		}

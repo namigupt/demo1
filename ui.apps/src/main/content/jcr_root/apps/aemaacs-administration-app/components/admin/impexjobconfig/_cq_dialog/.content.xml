@@ -30,11 +30,42 @@
                         jcr:title="Configuration"
                         sling:resourceType="granite/ui/components/coral/foundation/form/fieldset">
                         <items jcr:primaryType="nt:unstructured">
+                            <git-config
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/pathbrowser"
+                                fieldLabel="Cloud Manager GIT Config"
+                                name="gitConfig"
+                                required="true"
+                                rootPath="/conf"/>
                             <source-branch
                                 jcr:primaryType="nt:unstructured"
                                 sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
                                 fieldLabel="Source Branch"
                                 name="sourceBranch"
+                                required="true"/>
+                            <branch-prefix
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                fieldLabel="Target Branch Prefix"
+                                name="branchPrefix"
+                                required="true"/>
+                            <gitAuthor
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                fieldLabel="GIT Author"
+                                name="gitAuthor"
+                                required="true"/>
+                            <gitAuthorEmail
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                fieldLabel="GIT Author Email"
+                                name="gitAuthorEmail"
+                                required="true"/>
+                            <commitMessage
+                                jcr:primaryType="nt:unstructured"
+                                sling:resourceType="granite/ui/components/coral/foundation/form/textfield"
+                                fieldLabel="GIT Commit Message"
+                                name="commitMessage"
                                 required="true"/>
                             <frequency
                                 jcr:primaryType="nt:unstructured"

@@ -8,7 +8,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 
 public interface ExportService {
 	
-	JcrPackage buildPackage(List<String> filters, ResourceResolver resolver);
+	JcrPackage buildPackage(List<String> filters, ResourceResolver resolver, String string, String contentUpdatePackageGroup);
 
 	void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace);
 

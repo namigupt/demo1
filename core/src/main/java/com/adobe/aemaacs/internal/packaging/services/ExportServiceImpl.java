@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
@@ -36,14 +37,15 @@ public class ExportServiceImpl implements ExportService {
 	private transient Packaging packagingService;
 
 	@Override
-	public JcrPackage buildPackage(List<String> filters, ResourceResolver resolver) {
+	public JcrPackage buildPackage(List<String> filters, ResourceResolver resolver, String packageName,
+			String packageGroup) {
 		DefaultWorkspaceFilter defaultWorkspaceFilter = new DefaultWorkspaceFilter();
 		filters.forEach(item -> defaultWorkspaceFilter.add(new PathFilterSet(item)));
 
 		Session session = resolver.adaptTo(Session.class);
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
 		try {
-			JcrPackage jcrPackage = jcrPackageManager.create("demo", "content");
+			JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);
 			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
 			jcrPackageDefinition.setFilter(defaultWorkspaceFilter, false);
 			DefaultProgressListener progressListener = new DefaultProgressListener(new PrintWriter(System.out));
@@ -81,7 +83,7 @@ public class ExportServiceImpl implements ExportService {
 						sourceCodeWorkspace.concat("/ui.content/src/main/content/jcr_root").concat(filter));
 				parentPath.mkdirs();
 
-				Files.copy(inputStream, Path.of(parentPath.getPath(), ".content.xml"),
+				Files.copy(inputStream, Paths.get(parentPath.getPath(), ".content.xml"),
 						StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch (IOException e) {
@@ -99,4 +101,6 @@ public class ExportServiceImpl implements ExportService {
 			}
 		}
 	}
+
+
 }

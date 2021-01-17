@@ -42,8 +42,7 @@ Bundle-Vendor: Adobe
 Export-Package: com.adobe.aemaacs.external.*
 Bundle-SymbolicName: com.adobe.aemaacs.management
 Sling-Model-Packages: com.adobe.aemaacs.external.ui
-Import-Package: javax.annotation;version=0.0.0,javax.management;version=0.0.0,!com.mchange.*,!commonj.work,!javassist .*,!io.prometheus.*,!com.codahale.*,!org.hibernate.*,!org.terracotta.toolkit.*,!weblogic.jdbc.*,!org.jboss.*,!oracle.sql,!javax.ejb.*,!javax.rmi.*,!javax.jms.*,*
--includeresource: quartz-*.jar;lib:=true,HikariCP-java7-*.jar;lib:=true,c3p0-*.jar;lib:=true
+Import-Package: javax.annotation;version=0.0.0,javax.management;version=0.0.0,*
                                 ]]></bnd>
 						</configuration>
 					</execution>
@@ -81,30 +80,6 @@ Import-Package: javax.annotation;version=0.0.0,javax.management;version=0.0.0,!c
 	</build>
 
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.quartz-scheduler/quartz -->
-		<dependency>
-			<groupId>org.quartz-scheduler</groupId>
-			<artifactId>quartz</artifactId>
-			<version>2.3.2</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.quartz-scheduler/quartz-jobs -->
-		<dependency>
-			<groupId>org.quartz-scheduler</groupId>
-			<artifactId>quartz-jobs</artifactId>
-			<version>2.3.2</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP-java7 -->
-		<dependency>
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP-java7</artifactId>
-			<version>2.4.13</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
-		<dependency>
-			<groupId>com.mchange</groupId>
-			<artifactId>c3p0</artifactId>
-			<version>0.9.5.4</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>

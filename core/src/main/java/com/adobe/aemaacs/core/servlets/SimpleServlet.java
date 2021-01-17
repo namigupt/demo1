@@ -74,11 +74,13 @@ public class SimpleServlet extends SlingSafeMethodsServlet {
 					.call();
 			git.checkout().setName("demo").call();
 			
+			File file = new File(tmpFolder+"/demo");
+			file.mkdirs();
 			  Files.write(
-				        Paths.get(tmpFolder+"\\demo.txt"),
+				        Paths.get(tmpFolder+"\\demo\\.demo.txt"),
 				        "hello world".getBytes(StandardCharsets.UTF_8));
 			
-			git.add().addFilepattern("demo.txt").call();
+			git.add().addFilepattern("demo/.demo.txt").call();
 			git.commit().setAuthor("Nam", "namigupt@adobe.com").setMessage("demo").call();
 			
 			git.push()

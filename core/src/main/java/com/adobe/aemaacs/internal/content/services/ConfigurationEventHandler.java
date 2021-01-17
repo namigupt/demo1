@@ -30,7 +30,7 @@ import com.day.cq.wcm.api.PageModification.ModificationType;
 				"event.topics="+PageEvent.EVENT_TOPIC
 				}
 		)
-public class ImpexJobEventHandler implements EventHandler {
+public class ConfigurationEventHandler implements EventHandler {
 	
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 

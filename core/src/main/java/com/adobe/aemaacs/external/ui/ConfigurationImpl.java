@@ -33,33 +33,34 @@ import com.drew.lang.annotations.NotNull;
 @Model(adaptables = Resource.class, adapters = { Configuration.class })
 public class ConfigurationImpl implements Configuration {
 
-  private String configPath;
-  private String path;
+	private String configPath;
+	private String path;
 
-  @ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
-  @Named("jcr:content/jcr:title")
-  private String title;
+	@ValueMapValue(injectionStrategy = InjectionStrategy.OPTIONAL)
+	@Named("jcr:content/jcr:title")
+	private String title;
 
-  public ConfigurationImpl(Resource resource) {
-    path = resource.getPath();
-    configPath = Optional.ofNullable(resource.getParent()).map(Resource::getParent).map(Resource::getPath).orElse("");
-  }
+	public ConfigurationImpl(Resource resource) {
+		path = resource.getPath();
+		configPath = Optional.ofNullable(resource.getParent()).map(Resource::getParent).map(Resource::getPath)
+				.orElse("");
+	}
 
-  @NotNull
-  @Override
-  public String getConfigPath() {
-    return configPath;
-  }
+	@NotNull
+	@Override
+	public String getConfigPath() {
+		return configPath;
+	}
 
-  @NotNull
-  @Override
-  public String getItemPath() {
-    return path;
-  }
+	@NotNull
+	@Override
+	public String getItemPath() {
+		return path;
+	}
 
-  @NotNull
-  @Override
-  public String getTitle() {
-    return title;
-  }
+	@NotNull
+	@Override
+	public String getTitle() {
+		return title;
+	}
 }
