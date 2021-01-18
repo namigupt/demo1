@@ -5,6 +5,7 @@ public class SearchCriteria {
 	private String startDate;
 	private String endDate;
 	private String searchPath;
+	private String eventType;
 
 	public SearchCriteria(String startDate, String endDate, String searchPath) {
 		super();
@@ -37,11 +38,20 @@ public class SearchCriteria {
 		this.searchPath = searchPath;
 	}
 
+	public String getEventType() {
+		return eventType;
+	}
+
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((endDate == null) ? 0 : endDate.hashCode());
+		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
 		result = prime * result + ((searchPath == null) ? 0 : searchPath.hashCode());
 		result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
 		return result;
@@ -60,6 +70,11 @@ public class SearchCriteria {
 			if (other.endDate != null)
 				return false;
 		} else if (!endDate.equals(other.endDate))
+			return false;
+		if (eventType == null) {
+			if (other.eventType != null)
+				return false;
+		} else if (!eventType.equals(other.eventType))
 			return false;
 		if (searchPath == null) {
 			if (other.searchPath != null)

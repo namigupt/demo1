@@ -10,4 +10,8 @@ public interface SearchService {
 
 	List<String> getAssets(SearchCriteria searchCriteria, Session session);
 
+	List<String> getDeletedArtifacts(SearchCriteria searchCriteria, Session session);
+
+	List<String> getArtifacts(SearchCriteria searchCriteria, Session session);
+
 }

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -68,9 +67,9 @@ public class ExportServiceImpl implements ExportService {
 
 	
 	@Override
-	public void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace) {
+	public void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace,String intermediatePath, String name) {
 		try {
-			Entry entry = archive.getEntry("jcr_root".concat(filter).concat("/.content.xml"));
+			Entry entry = archive.getEntry("jcr_root".concat(filter).concat("/").concat(intermediatePath).concat(name));
 			if (null == entry) {
 				throw new IOException("Unable to find entry in the archive");
 			}
@@ -80,10 +79,10 @@ public class ExportServiceImpl implements ExportService {
 				}
 				// Create Parent Path.
 				File parentPath = new File(
-						sourceCodeWorkspace.concat("/ui.content/src/main/content/jcr_root").concat(filter));
+						sourceCodeWorkspace.concat("/ui.content/src/main/content/jcr_root").concat(filter).concat("/").concat(intermediatePath));
 				parentPath.mkdirs();
 
-				Files.copy(inputStream, Paths.get(parentPath.getPath(), ".content.xml"),
+				Files.copy(inputStream, Paths.get(parentPath.getPath(), name),
 						StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch (IOException e) {
@@ -92,15 +91,14 @@ public class ExportServiceImpl implements ExportService {
 	}
 
 	@Override
-	public void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace) {
+	public void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace,String intermediatePath, String suffix) {
 		for (String filter : filterList) {
 			try {
-				deserializeEntry(archive, filter, sourceCodeWorkspace);
+				deserializeEntry(archive, filter, sourceCodeWorkspace, intermediatePath,suffix);
 			} catch (ImpexException e) {
 				throw new ImpexException(e.getMessage(), "IMPEX103");
 			}
 		}
 	}
-
 
 }

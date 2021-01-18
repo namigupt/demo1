@@ -1,21 +1,18 @@
 package com.adobe.aemaacs.internal.content.services;
 
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.jcr.Session;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.packaging.JcrPackage;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.event.jobs.Job;
 import org.apache.sling.event.jobs.consumer.JobConsumer;
 import org.eclipse.jgit.api.Git;
@@ -23,6 +20,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import com.adobe.aemaacs.external.git.services.GitProfile;
+import com.adobe.aemaacs.external.git.services.GitWorkspace;
 import com.adobe.aemaacs.external.git.services.GitWrapperService;
 import com.adobe.aemaacs.external.packaging.services.ExportService;
 import com.adobe.aemaacs.external.search.services.SearchCriteria;
@@ -33,10 +31,11 @@ import com.adobe.aemaacs.external.search.services.SearchService;
 		service = JobConsumer.class,
 		property = { 
 				"service.vendor=Adobe Systems" ,
-				"job.topics=com/adobe/aemaacs/jobs/impex"
+				"job.topics=com/adobe/aemaacs/jobs/impex/pages",
+				"job.topics=com/adobe/aemaacs/jobs/impex/assets"
 				}
 		)
-public class ImpexJobConsumer implements JobConsumer {
+public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer {
 
 	@Reference
 	private transient ResourceResolverFactory resolverFactory;
@@ -48,56 +47,51 @@ public class ImpexJobConsumer implements JobConsumer {
 	private transient ExportService exportService;
 	
 	@Reference
-	private transient GitWrapperService girWrapperService;
+	private transient GitWrapperService gitWrapperService;
 	
-	private static final String DATE_FORMAT = "yyyy-MM-dd";
-	private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd-HH-mm-ss";
-	private static final String CONTENT_UPDATE_PACKAGE_GROUP = "com.adobe.aemaacs.hol";
+	private static final String AUDIT_EVENTS_STORAGE_PAGE_EVENTS = "/var/audit/com.day.cq.wcm.core.page";
+	private static final String AUDIT_EVENTS_STORAGE_ASSET_EVENTS = "/var/audit/com.day.cq.dam";
 	
 	@Override
 	public JobResult process(Job job) {
-		try (ResourceResolver resolver = this.resolverFactory.getAdministrativeResourceResolver(null);) {
-			String searchPath = job.getProperty("contentRoot", String.class);
+		Map<String, Object> param = new HashMap<String, Object>();
+		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
+		String artifactType = StringUtils.substringAfterLast(job.getTopic(), "/");
+		try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
 			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-			List<String> filterList = this.searchService.getPages(
-					new SearchCriteria(getStartDate(dateFormat), getEndDate(dateFormat), searchPath),
-					resolver.adaptTo(Session.class));
-			if (filterList.isEmpty()) {
+			Session session = resolver.adaptTo(Session.class);
+			
+			SearchCriteria searchCriteria = new SearchCriteria(formatDate(dateFormat, -7),
+					formatDate(dateFormat, 1), job.getProperty("contentRoot", String.class));
+			searchCriteria.setEventType(artifactType);
+			List<String> addedFiles = this.searchService.getArtifacts(searchCriteria, session);
+
+			searchCriteria.setEventType(artifactType.equals("pages")?"PageDeleted":"ASSET_REMOVED");
+			searchCriteria.setSearchPath(artifactType.equals("pages")? AUDIT_EVENTS_STORAGE_PAGE_EVENTS.concat(searchCriteria.getSearchPath()) : AUDIT_EVENTS_STORAGE_ASSET_EVENTS.concat(searchCriteria.getSearchPath()));
+			List<String> deletedFilterList = this.searchService.getDeletedArtifacts(searchCriteria, session);
+
+			if (addedFiles.isEmpty() && deletedFilterList.isEmpty()) {
 				return JobResult.OK;
 			}
+			
+			GitProfile gitProfile = super.getGitProfile(job, resolver);
+			GitWorkspace workspace = super.checkoutCode(gitWrapperService, gitProfile, job);
+			try (Git git = workspace.getGitRepo()) {
 
-			//Read the Cloud config
-			ValueMap gitConfigMap = resolver.getResource(job.getProperty("gitConfig", String.class)).getChild("jcr:content").getValueMap();
-			
-			// Checkout code
-			String folderName = Instant.now().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE);
-			String tmpFolder = Files.createTempDirectory(folderName).toString();
-			
-			GitProfile gitProfile = new GitProfile(gitConfigMap.get("username", String.class),
-					gitConfigMap.get("password", String.class), gitConfigMap.get("repoURL", String.class));
-			Git git = this.girWrapperService.cloneRepo(gitProfile, tmpFolder);
-			
-			String branchID = getEndDate(new SimpleDateFormat(TIMESTAMP_FORMAT));
-			String branchName = job.getProperty("branchPrefix", String.class).concat("/").concat(branchID);
-			git.branchCreate().setName(branchName).setStartPoint(job.getProperty("sourceBranch", String.class)).call();
-			git.checkout().setName(branchName).call();
-			
+				JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver, "content-" + workspace.getBranchID(),
+						CONTENT_UPDATE_PACKAGE_GROUP);
+				Archive archive = exportService.getPackageArchive(jcrPackage);
+				
+				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(), archive, artifactType);
+				
+				git.commit()
+						.setAuthor(job.getProperty("gitAuthor", String.class),
+								job.getProperty("gitAuthorEmail", String.class))
+						.setMessage(job.getProperty("commitMessage", String.class)).call();
 
-			JcrPackage jcrPackage = this.exportService.buildPackage(filterList, resolver,"content-"+branchID, CONTENT_UPDATE_PACKAGE_GROUP);
-			Archive archive = this.exportService.getPackageArchive(jcrPackage);
-			this.exportService.deserializeEnteries(archive, filterList, tmpFolder);
-
-			for(String filter : filterList) {
-				git.add().addFilepattern("ui.content/src/main/content/jcr_root"+filter+"/.content.xml").call();
+				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
 			}
-			git
-			.commit()
-			.setAuthor(job.getProperty("gitAuthor", String.class), job.getProperty("gitAuthorEmail", String.class))
-			.setMessage(job.getProperty("commitMessage", String.class))
-			.call();
 			
-			this.girWrapperService.pushRepo(gitProfile, git, branchName);
-			git.close();
 			
 			return JobResult.OK;
 		} catch (Exception e) {
@@ -105,14 +99,4 @@ public class ImpexJobConsumer implements JobConsumer {
 		}
 	}
 
-	private String getStartDate(DateFormat dateFormat) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DATE, -7);
-		return dateFormat.format(calendar.getTime());
-	}
-	
-	private String getEndDate(DateFormat dateFormat) {
-		Calendar calendar = Calendar.getInstance();
-		return dateFormat.format(calendar.getTime());
-	}
 }

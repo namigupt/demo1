@@ -51,7 +51,11 @@ public class ConfigurationEventHandler implements EventHandler {
 			log.debug("Modification Type: ", pageModification.getType());
 			if (StringUtils.startsWith(path, "/conf")
 					&& StringUtils.contains(path, "/settings/jobs/")) {
-				try (ResourceResolver resolver = this.resolverFactory.getAdministrativeResourceResolver(null);) {
+				
+				Map<String, Object> param = new HashMap<String, Object>();
+				param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
+				
+				try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
 
 					switch (type) {
 
@@ -82,7 +86,11 @@ public class ConfigurationEventHandler implements EventHandler {
 		Map<String, Object> properties = new HashMap<>();
 		properties.putAll(valueMap);
 		properties.put("jobID", path);
-		JobBuilder.ScheduleBuilder scheduleBuilder = this.jobManager.createJob("com/adobe/aemaacs/jobs/impex").properties(properties).schedule();
+		JobBuilder.ScheduleBuilder scheduleBuilder = this.jobManager
+				.createJob(StringUtils.startsWith(valueMap.get("contentRoot", String.class), "/content/dam/")
+						? "com/adobe/aemaacs/jobs/impex/assets"
+						: "com/adobe/aemaacs/jobs/impex/pages")
+				.properties(properties).schedule();
 		scheduleBuilder.cron(valueMap.get("frequency", String.class));
 		scheduleBuilder.add();
 	}
