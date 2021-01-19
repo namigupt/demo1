@@ -18,6 +18,7 @@
  * #L%
  */
 package com.adobe.aemaacs.external.ui;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,31 +36,31 @@ import com.drew.lang.annotations.NotNull;
 @Model(adaptables = SlingHttpServletRequest.class, adapters = { ImpexJobConfigList.class })
 public class ImpexJobConfigListImpl implements ImpexJobConfigList {
 
-  private static final Logger log = LoggerFactory.getLogger(ImpexJobConfigListImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ImpexJobConfigListImpl.class);
 
-  private List<Configuration> configs = new ArrayList<>();
+	private List<Configuration> configs = new ArrayList<>();
 
-  public ImpexJobConfigListImpl(SlingHttpServletRequest slingRequest) {
+	public ImpexJobConfigListImpl(SlingHttpServletRequest slingRequest) {
 
-    String template = Optional.ofNullable(slingRequest.getRequestPathInfo().getSuffix()).orElse("");
+		String template = Optional.ofNullable(slingRequest.getRequestPathInfo().getSuffix()).orElse("");
 
-    if (StringUtils.isNotBlank(template)) {
-      String query = "SELECT * FROM [cq:Page] WHERE ISDESCENDANTNODE([/conf]) AND [jcr:content/cq:template]='"
-          + template.replace("'", "''") + "'";
-      log.debug("Finding cloud configuerations with: {}", query);
+		if (StringUtils.isNotBlank(template)) {
+			String query = "SELECT * FROM [cq:Page] WHERE ISDESCENDANTNODE([/conf]) AND [jcr:content/cq:template]='"
+					+ template.replace("'", "''") + "'";
+			log.debug("Finding cloud configurations with: {}", query);
 
-      slingRequest.getResourceResolver().findResources(query, Query.JCR_SQL2).forEachRemaining(ccr -> {
-        configs.add(ccr.adaptTo(Configuration.class));
-      });
-    } else {
-      log.debug("Suffix not specified");
+			slingRequest.getResourceResolver().findResources(query, Query.JCR_SQL2).forEachRemaining(ccr -> {
+				configs.add(ccr.adaptTo(Configuration.class));
+			});
+		} else {
+			log.debug("Suffix not specified");
 
-    }
-  }
+		}
+	}
 
-  @NotNull
-  @Override
-  public List<Configuration> getCloudConfigurations() {
-    return configs;
-  }
+	@NotNull
+	@Override
+	public List<Configuration> getCloudConfigurations() {
+		return configs;
+	}
 }

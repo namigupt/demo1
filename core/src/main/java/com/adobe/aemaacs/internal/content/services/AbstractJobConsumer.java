@@ -79,7 +79,7 @@ public abstract class AbstractJobConsumer {
 					break;
 				}
 			} catch (GitAPIException e) {
-
+				return;
 			}
 
 		});
