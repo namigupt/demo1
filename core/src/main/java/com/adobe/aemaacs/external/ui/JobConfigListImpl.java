@@ -33,15 +33,14 @@ import org.slf4j.LoggerFactory;
 
 import com.drew.lang.annotations.NotNull;
 
-@Model(adaptables = SlingHttpServletRequest.class, adapters = { ImpexJobConfigList.class })
-public class ImpexJobConfigListImpl implements ImpexJobConfigList {
+@Model(adaptables = SlingHttpServletRequest.class, adapters = { JobConfigList.class })
+public class JobConfigListImpl implements JobConfigList {
 
-	private static final Logger log = LoggerFactory.getLogger(ImpexJobConfigListImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(JobConfigListImpl.class);
 
 	private List<Configuration> configs = new ArrayList<>();
-
-	public ImpexJobConfigListImpl(SlingHttpServletRequest slingRequest) {
-
+	
+	public JobConfigListImpl(SlingHttpServletRequest slingRequest) {
 		String template = Optional.ofNullable(slingRequest.getRequestPathInfo().getSuffix()).orElse("");
 
 		if (StringUtils.isNotBlank(template)) {

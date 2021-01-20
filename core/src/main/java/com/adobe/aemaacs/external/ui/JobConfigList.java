@@ -29,7 +29,7 @@ import com.drew.lang.annotations.NotNull;
  *
  */
 @ConsumerType
-public interface ImpexJobConfigList {
+public interface JobConfigList {
 
   /**
    * Retrieve the list of CloudConfigurations for the specified request.

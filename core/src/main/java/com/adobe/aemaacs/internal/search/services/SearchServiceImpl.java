@@ -108,7 +108,7 @@ public class SearchServiceImpl implements SearchService {
 			return getAssets(searchCriteria, session);
 		
 		case "pages":
-			return getAssets(searchCriteria, session);
+			return getPages(searchCriteria, session);
 			
 		default:
 			return null;

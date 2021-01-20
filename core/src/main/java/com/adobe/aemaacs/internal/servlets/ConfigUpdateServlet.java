@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package com.adobe.aemaacs.core.servlets;
+package com.adobe.aemaacs.internal.servlets;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -72,6 +72,7 @@ public class ConfigUpdateServlet extends SlingAllMethodsServlet {
 		} catch (Exception e) {
 			resp.setStatus(500, e.getMessage());
 			resp.send(response, true);
+			log.error(e.getMessage(), e);
 		}
 
 

@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package com.adobe.aemaacs.core.servlets;
+package com.adobe.aemaacs.internal.servlets;
 
 import java.io.IOException;
 import java.util.Collections;

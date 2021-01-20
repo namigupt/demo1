@@ -1,13 +1,17 @@
 package com.adobe.aemaacs.internal.content.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.jackrabbit.vault.fs.io.Archive;
@@ -107,5 +111,10 @@ public abstract class AbstractJobConsumer {
 				continue;
 			}
 		}
+	}
+	
+	protected void cleanup(GitWorkspace workspace) throws IOException {
+		Path path = Paths.get(workspace.getSourceFolder());
+		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 	}
 }

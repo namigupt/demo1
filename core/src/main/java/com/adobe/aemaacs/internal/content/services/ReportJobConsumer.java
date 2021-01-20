@@ -9,19 +9,15 @@ import java.util.Map;
 import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.event.jobs.Job;
 import org.apache.sling.event.jobs.consumer.JobConsumer;
-import org.eclipse.jgit.api.Git;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import com.adobe.aemaacs.external.git.services.GitProfile;
-import com.adobe.aemaacs.external.git.services.GitWorkspace;
-import com.adobe.aemaacs.external.git.services.GitWrapperService;
 import com.adobe.aemaacs.external.packaging.services.ExportService;
 import com.adobe.aemaacs.external.search.services.SearchCriteria;
 import com.adobe.aemaacs.external.search.services.SearchService;
@@ -31,11 +27,10 @@ import com.adobe.aemaacs.external.search.services.SearchService;
 		service = JobConsumer.class,
 		property = { 
 				"service.vendor=Adobe Systems" ,
-				"job.topics=com/adobe/aemaacs/jobs/impex/pages",
-				"job.topics=com/adobe/aemaacs/jobs/impex/assets"
+				"job.topics=com/adobe/aemaacs/jobs/content/report"
 				}
 		)
-public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer {
+public class ReportJobConsumer extends AbstractJobConsumer implements JobConsumer {
 
 	@Reference
 	private transient ResourceResolverFactory resolverFactory;
@@ -46,9 +41,6 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 	@Reference
 	private transient ExportService exportService;
 	
-	@Reference
-	private transient GitWrapperService gitWrapperService;
-	
 	private static final String AUDIT_EVENTS_STORAGE_PAGE_EVENTS = "/var/audit/com.day.cq.wcm.core.page";
 	private static final String AUDIT_EVENTS_STORAGE_ASSET_EVENTS = "/var/audit/com.day.cq.dam";
 	
@@ -56,13 +48,14 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 	public JobResult process(Job job) {
 		Map<String, Object> param = new HashMap<String, Object>();
 		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
-		String artifactType = StringUtils.substringAfterLast(job.getTopic(), "/");
+		String artifactType = StringUtils.startsWith(job.getProperty("contentRoot", String.class), "/content/dam")?"assets":"pages";
+		
 		try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
 			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 			Session session = resolver.adaptTo(Session.class);
-			
-			SearchCriteria searchCriteria = new SearchCriteria(formatDate(dateFormat, -7),
-					formatDate(dateFormat, 1), job.getProperty("contentRoot", String.class));
+
+			SearchCriteria searchCriteria = new SearchCriteria(formatDate(dateFormat, -7), formatDate(dateFormat, 1),
+					job.getProperty("contentRoot", String.class));
 			searchCriteria.setEventType(artifactType);
 			List<String> addedFiles = this.searchService.getArtifacts(searchCriteria, session);
 
@@ -70,30 +63,22 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			searchCriteria.setSearchPath(artifactType.equals("pages")
 					? AUDIT_EVENTS_STORAGE_PAGE_EVENTS.concat(searchCriteria.getSearchPath())
 					: AUDIT_EVENTS_STORAGE_ASSET_EVENTS.concat(searchCriteria.getSearchPath()));
+			
 			List<String> deletedFilterList = this.searchService.getDeletedArtifacts(searchCriteria, session);
-
 			if (addedFiles.isEmpty() && deletedFilterList.isEmpty()) {
 				return JobResult.OK;
 			}
+			JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver,
+					"content-" + System.currentTimeMillis(), CONTENT_UPDATE_PACKAGE_GROUP);
 			
-			GitProfile gitProfile = super.getGitProfile(job, resolver);
-			GitWorkspace workspace = super.checkoutCode(gitWrapperService, gitProfile, job);
-			try (Git git = workspace.getGitRepo()) {
-
-				JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver, "content-" + workspace.getBranchID(),
-						CONTENT_UPDATE_PACKAGE_GROUP);
-				Archive archive = exportService.getPackageArchive(jcrPackage);
-				
-				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(), archive, artifactType);
-				
-				git.commit()
-						.setAuthor(job.getProperty("gitAuthor", String.class),
-								job.getProperty("gitAuthorEmail", String.class))
-						.setMessage(job.getProperty("commitMessage", String.class)).call();
-
-				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
+			//commit report results
+			ModifiableValueMap modifiableValueMap = resolver.getResource(job.getProperty("path", String.class)).getChild("jcr:content").adaptTo(ModifiableValueMap.class);
+			modifiableValueMap.put("package", jcrPackage.getNode().getPath());
+			modifiableValueMap.put("addedFiles", addedFiles.toArray());
+			modifiableValueMap.put("deletedFiles",deletedFilterList.toArray());
+			if(resolver.hasChanges()) {
+				resolver.commit();
 			}
-			super.cleanup(workspace);
 			return JobResult.OK;
 		} catch (Exception e) {
 			return JobResult.FAILED;
