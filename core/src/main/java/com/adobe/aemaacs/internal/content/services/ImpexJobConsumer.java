@@ -7,11 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.vault.fs.io.Archive;
+import org.apache.jackrabbit.vault.packaging.JcrPackageManager;
 import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.Packaging;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -52,6 +55,9 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 	@Reference
 	private transient GitWrapperService gitWrapperService;
 	
+	@Reference
+	private transient Packaging packagingService;
+	
 	private static final String AUDIT_EVENTS_STORAGE_PAGE_EVENTS = "/var/audit/com.day.cq.wcm.core.page";
 	private static final String AUDIT_EVENTS_STORAGE_ASSET_EVENTS = "/var/audit/com.day.cq.dam";
 	
@@ -85,7 +91,9 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			try (Git git = workspace.getGitRepo()) {
 				PackageId packageId = exportService.buildPackage(addedFiles, resolver,
 						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
-				archive = exportService.getPackageArchive(packageId, resolver);
+
+				final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
+				archive = jcrPackageManager.open(packageId).getPackage().getArchive();
 
 				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(),
 						archive, artifactType);
@@ -96,10 +104,10 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 						.setMessage(job.getProperty("commitMessage", String.class)).call();
 
 				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
-			}
+			} 
 			super.cleanup(workspace);
 			return JobResult.OK;
-		} catch (IOException | GitAPIException | LoginException e) {
+		} catch (IOException | GitAPIException | LoginException | RepositoryException e) {
 			return JobResult.FAILED;
 		}finally {
 			if(null != archive) {

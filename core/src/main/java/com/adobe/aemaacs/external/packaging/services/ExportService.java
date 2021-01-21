@@ -14,6 +14,4 @@ public interface ExportService {
 
 	void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace,String intermediatePath, String name);
 
-	Archive getPackageArchive(PackageId packageId, ResourceResolver resolver);
-
 }

@@ -69,17 +69,6 @@ public class ExportServiceImpl implements ExportService {
 	}
 
 	@Override
-	public Archive getPackageArchive(PackageId packageId, ResourceResolver resolver) {
-		try {
-			Session session = resolver.adaptTo(Session.class);
-			final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-			return jcrPackageManager.open(packageId).getPackage().getArchive();
-		} catch (RepositoryException | IOException e) {
-			throw new ImpexException(e.getMessage(), "IMPEX102");
-		}
-	}
-
-	@Override
 	public void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace, String intermediatePath,
 			String name) {
 		try {
