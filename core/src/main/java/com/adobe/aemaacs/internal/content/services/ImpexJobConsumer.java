@@ -11,7 +11,7 @@ import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.vault.fs.io.Archive;
-import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -82,21 +82,20 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			GitProfile gitProfile = super.getGitProfile(job, resolver);
 			GitWorkspace workspace = super.checkoutCode(gitWrapperService, gitProfile, job);
 			try (Git git = workspace.getGitRepo()) {
+				PackageId packageId = exportService.buildPackage(addedFiles, resolver,
+						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
 
-				try(JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver, "content-" + workspace.getBranchID(),
-						CONTENT_UPDATE_PACKAGE_GROUP);){
-					Archive archive = exportService.getPackageArchive(jcrPackage);
-					
-					super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(), archive, artifactType);
-					
-					git.commit()
-					.setAuthor(job.getProperty("gitAuthor", String.class),
-							job.getProperty("gitAuthorEmail", String.class))
-					.setMessage(job.getProperty("commitMessage", String.class)).call();
-					
-					this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
-				}
-				
+				Archive archive = exportService.getPackageArchive(packageId, resolver);
+
+				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(),
+						archive, artifactType);
+
+				git.commit()
+						.setAuthor(job.getProperty("gitAuthor", String.class),
+								job.getProperty("gitAuthorEmail", String.class))
+						.setMessage(job.getProperty("commitMessage", String.class)).call();
+
+				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
 			}
 			super.cleanup(workspace);
 			return JobResult.OK;

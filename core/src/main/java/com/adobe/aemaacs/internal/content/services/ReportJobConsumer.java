@@ -7,12 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.JcrConstants;
-import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -72,19 +71,19 @@ public class ReportJobConsumer extends AbstractJobConsumer implements JobConsume
 			if (addedFiles.isEmpty() && deletedFilterList.isEmpty()) {
 				return JobResult.OK;
 			}
-			JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver,
+			PackageId jcrPackage = exportService.buildPackage(addedFiles, resolver,
 					"content-" + System.currentTimeMillis(), CONTENT_UPDATE_PACKAGE_GROUP);
 			
 			//commit report results
 			ModifiableValueMap modifiableValueMap = resolver.getResource(job.getProperty("path", String.class)).getChild(JcrConstants.JCR_CONTENT).adaptTo(ModifiableValueMap.class);
-			modifiableValueMap.put("package", (null == jcrPackage)? StringUtils.EMPTY : jcrPackage.getNode().getPath());
+			modifiableValueMap.put("package", (null == jcrPackage )? StringUtils.EMPTY : jcrPackage.getDownloadName());
 			modifiableValueMap.put("addedFiles", addedFiles.toArray());
 			modifiableValueMap.put("deletedFiles",deletedFilterList.toArray());
 			if(resolver.hasChanges()) {
 				resolver.commit();
 			}
 			return JobResult.OK;
-		} catch (IOException | LoginException | RepositoryException e) {
+		} catch (IOException | LoginException e) {
 			return JobResult.FAILED;
 		}
 	}
