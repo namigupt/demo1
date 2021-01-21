@@ -92,6 +92,9 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
 
 				final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
+				if(null == jcrPackageManager) {
+					throw new IOException("unable to get package manager service instance");
+				}
 				try (Archive archive = jcrPackageManager.open(packageId).getPackage().getArchive();) {
 
 					super.commitArtifacts(exportService, addedFiles, deletedFilterList, git,

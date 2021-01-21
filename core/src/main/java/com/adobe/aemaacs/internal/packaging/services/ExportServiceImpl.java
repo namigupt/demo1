@@ -47,10 +47,13 @@ public class ExportServiceImpl implements ExportService {
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
 		try(JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);) {
 			
-			if (null == jcrPackage || null == jcrPackage.getDefinition()) {
+			if (null == jcrPackage) {
 				throw new IOException("Unable to create JCR Package");
 			}
 			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
+			if (null == jcrPackage.getDefinition()) {
+				throw new IOException("Unable to create JCR Package");
+			}
 			jcrPackageDefinition.setFilter(defaultWorkspaceFilter, false);
 			DefaultProgressListener progressListener = new DefaultProgressListener(new PrintWriter(System.out));
 			jcrPackageManager.assemble(jcrPackage, progressListener);
