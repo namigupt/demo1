@@ -63,7 +63,6 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 	
 	@Override
 	public JobResult process(Job job) {
-		Archive archive = null;
 		Map<String, Object> param = new HashMap<String, Object>();
 		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
 		String artifactType = StringUtils.substringAfterLast(job.getTopic(), "/");
@@ -93,20 +92,17 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
 
 				final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-				archive = jcrPackageManager.open(packageId).getPackage().getArchive();
+				try (Archive archive = jcrPackageManager.open(packageId).getPackage().getArchive();) {
 
-				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(),
-						archive, artifactType);
+					super.commitArtifacts(exportService, addedFiles, deletedFilterList, git,
+							workspace.getSourceFolder(), archive, artifactType);
 
-				git.commit()
-						.setAuthor(job.getProperty("gitAuthor", String.class),
-								job.getProperty("gitAuthorEmail", String.class))
-						.setMessage(job.getProperty("commitMessage", String.class)).call();
+					git.commit()
+							.setAuthor(job.getProperty("gitAuthor", String.class),
+									job.getProperty("gitAuthorEmail", String.class))
+							.setMessage(job.getProperty("commitMessage", String.class)).call();
 
-				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
-			} finally {
-				if(null != archive) {
-					archive.close();
+					this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
 				}
 			}
 			super.cleanup(workspace);

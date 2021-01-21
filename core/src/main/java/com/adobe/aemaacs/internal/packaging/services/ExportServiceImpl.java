@@ -45,26 +45,18 @@ public class ExportServiceImpl implements ExportService {
 
 		Session session = resolver.adaptTo(Session.class);
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-		JcrPackage jcrPackage = null;
-		try {
-			jcrPackage = jcrPackageManager.create(packageGroup, packageName);
-			if (null == jcrPackage) {
+		try(JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);) {
+			
+			if (null == jcrPackage || null == jcrPackage.getDefinition()) {
 				throw new IOException("Unable to create JCR Package");
 			}
 			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
-			if (null == jcrPackageDefinition) {
-				throw new IOException("Unable to create JCR Package");
-			}
 			jcrPackageDefinition.setFilter(defaultWorkspaceFilter, false);
 			DefaultProgressListener progressListener = new DefaultProgressListener(new PrintWriter(System.out));
 			jcrPackageManager.assemble(jcrPackage, progressListener);
 			return jcrPackage.getPackage().getId();
 		} catch (RepositoryException | IOException | PackageException e) {
 			throw new ImpexException(e.getMessage(), "IMPEX101");
-		}finally {
-			if(null != jcrPackage) {
-				jcrPackage.close();
-			}
 		}
 	}
 
