@@ -104,15 +104,15 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 						.setMessage(job.getProperty("commitMessage", String.class)).call();
 
 				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
-			} 
+			} finally {
+				if(null != archive) {
+					archive.close();
+				}
+			}
 			super.cleanup(workspace);
 			return JobResult.OK;
 		} catch (IOException | GitAPIException | LoginException | RepositoryException e) {
 			return JobResult.FAILED;
-		}finally {
-			if(null != archive) {
-				archive.close();
-			}
 		}
 	}
 
