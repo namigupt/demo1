@@ -45,7 +45,9 @@ public class ExportServiceImpl implements ExportService {
 
 		Session session = resolver.adaptTo(Session.class);
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-		try (JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);){
+		JcrPackage jcrPackage = null;
+		try {
+			jcrPackage = jcrPackageManager.create(packageGroup, packageName);
 			if (null == jcrPackage) {
 				throw new IOException("Unable to create JCR Package");
 			}
@@ -59,6 +61,10 @@ public class ExportServiceImpl implements ExportService {
 			return jcrPackage.getPackage().getId();
 		} catch (RepositoryException | IOException | PackageException e) {
 			throw new ImpexException(e.getMessage(), "IMPEX101");
+		}finally {
+			if(null != jcrPackage) {
+				jcrPackage.close();
+			}
 		}
 	}
 
@@ -86,9 +92,11 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				File parentPath = Paths.get(FilenameUtils.getFullPath(sourceCodeWorkspace),
-						FilenameUtils.getName(sourceCodeWorkspace), "/ui.content/src/main/content/jcr_root", filter,
-						"/", FilenameUtils.getFullPath(intermediatePath)).toFile();
+				File parentPath = Paths
+						.get(FilenameUtils.getFullPath(sourceCodeWorkspace), FilenameUtils.getName(sourceCodeWorkspace),
+								"/ui.content/src/main/content/jcr_root", FilenameUtils.getFullPath(filter),
+								FilenameUtils.getName(filter), "/", FilenameUtils.getFullPath(intermediatePath))
+						.toFile();
 				parentPath.mkdirs();
 
 				Files.copy(inputStream,
