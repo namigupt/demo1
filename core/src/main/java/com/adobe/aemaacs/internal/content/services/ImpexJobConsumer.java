@@ -57,6 +57,7 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 	
 	@Override
 	public JobResult process(Job job) {
+		Archive archive = null;
 		Map<String, Object> param = new HashMap<String, Object>();
 		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
 		String artifactType = StringUtils.substringAfterLast(job.getTopic(), "/");
@@ -84,8 +85,7 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			try (Git git = workspace.getGitRepo()) {
 				PackageId packageId = exportService.buildPackage(addedFiles, resolver,
 						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
-
-				Archive archive = exportService.getPackageArchive(packageId, resolver);
+				archive = exportService.getPackageArchive(packageId, resolver);
 
 				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(),
 						archive, artifactType);
@@ -101,6 +101,10 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			return JobResult.OK;
 		} catch (IOException | GitAPIException | LoginException e) {
 			return JobResult.FAILED;
+		}finally {
+			if(null != archive) {
+				archive.close();
+			}
 		}
 	}
 
