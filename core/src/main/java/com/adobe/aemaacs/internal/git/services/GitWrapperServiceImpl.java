@@ -1,7 +1,9 @@
 package com.adobe.aemaacs.internal.git.services;
 
-import java.io.File;
+import java.nio.file.Paths;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.RefSpec;
@@ -20,7 +22,9 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 			Git git = Git.cloneRepository().setURI(gitProfile.getRepository())
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
-					.setDirectory(new File(tmpFolder)).call();
+					.setDirectory(Paths.get(System.getProperty("java.io.tmpdir"),
+							FilenameUtils.getName(StringUtils.substringAfterLast(tmpFolder, "\\"))).toFile())
+					.call();
 			return git;
 		} catch (GitAPIException e) {
 			throw new GitException(e.getMessage(), "GIT101");
@@ -31,7 +35,7 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 	public void addArtifact(String pattern, Git git) {
 		try {
 			git.add().addFilepattern(pattern).call();
-		} catch (Exception e) {
+		} catch (GitAPIException e) {
 			throw new GitException(e.getMessage(), "GIT102");
 		}
 	}
@@ -43,7 +47,7 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 				git.add().addFilepattern(pattern).call();
 			}
 			git.commit().call();
-		} catch (Exception e) {
+		} catch (GitAPIException e) {
 			throw new GitException(e.getMessage(), "GIT102");
 		}
 	}
@@ -54,13 +58,10 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 			git.push()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
-					.setRemote("origin")
-					.setRefSpecs(new RefSpec(targetBranch+":"+targetBranch))
-					.call();
-		} catch (Exception e) {
+					.setRemote("origin").setRefSpecs(new RefSpec(targetBranch + ":" + targetBranch)).call();
+		} catch (GitAPIException e) {
 			throw new GitException(e.getMessage(), "GIT103");
 		}
-
 	}
 
 }

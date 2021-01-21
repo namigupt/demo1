@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -82,7 +83,7 @@ public class ConfigurationEventHandler implements EventHandler {
 	}
 	
 	private void addJob(String path, ResourceResolver resolver) {
-		ValueMap valueMap = resolver.getResource(path).getChild("jcr:content").getValueMap();
+		ValueMap valueMap = resolver.getResource(path).getChild(JcrConstants.JCR_CONTENT).getValueMap();
 		Map<String, Object> properties = new HashMap<>();
 		properties.putAll(valueMap);
 		properties.put("jobID", path);

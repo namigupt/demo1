@@ -20,12 +20,13 @@
 package com.adobe.aemaacs.external.ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import javax.jcr.query.Query;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.models.annotations.Model;
 import org.slf4j.Logger;
@@ -60,6 +61,6 @@ public class JobConfigListImpl implements JobConfigList {
 	@NotNull
 	@Override
 	public List<Configuration> getCloudConfigurations() {
-		return configs;
+		return Collections.unmodifiableList(this.configs);
 	}
 }

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
@@ -45,6 +46,9 @@ public class ExportServiceImpl implements ExportService {
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
 		try {
 			JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);
+			if (null == jcrPackage) {
+				throw new IOException("Unable to create JCR Package");
+			}
 			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
 			jcrPackageDefinition.setFilter(defaultWorkspaceFilter, false);
 			DefaultProgressListener progressListener = new DefaultProgressListener(new PrintWriter(System.out));
@@ -55,7 +59,6 @@ public class ExportServiceImpl implements ExportService {
 		}
 	}
 
-
 	@Override
 	public Archive getPackageArchive(JcrPackage jcrPackage) {
 		try {
@@ -65,9 +68,9 @@ public class ExportServiceImpl implements ExportService {
 		}
 	}
 
-	
 	@Override
-	public void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace,String intermediatePath, String name) {
+	public void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace, String intermediatePath,
+			String name) {
 		try {
 			Entry entry = archive.getEntry("jcr_root".concat(filter).concat("/").concat(intermediatePath).concat(name));
 			if (null == entry) {
@@ -78,11 +81,11 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				File parentPath = new File(
-						sourceCodeWorkspace.concat("/ui.content/src/main/content/jcr_root").concat(filter).concat("/").concat(intermediatePath));
+				File parentPath = Paths.get(sourceCodeWorkspace, "/ui.content/src/main/content/jcr_root", filter, "/",
+						FilenameUtils.getFullPath(intermediatePath)).toFile();
 				parentPath.mkdirs();
 
-				Files.copy(inputStream, Paths.get(parentPath.getPath(), name),
+				Files.copy(inputStream, Paths.get(parentPath.getPath(), FilenameUtils.getName(name)),
 						StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch (IOException e) {
@@ -91,10 +94,11 @@ public class ExportServiceImpl implements ExportService {
 	}
 
 	@Override
-	public void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace,String intermediatePath, String suffix) {
+	public void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace,
+			String intermediatePath, String suffix) {
 		for (String filter : filterList) {
 			try {
-				deserializeEntry(archive, filter, sourceCodeWorkspace, intermediatePath,suffix);
+				deserializeEntry(archive, filter, sourceCodeWorkspace, intermediatePath, suffix);
 			} catch (ImpexException e) {
 				throw new ImpexException(e.getMessage(), "IMPEX103");
 			}

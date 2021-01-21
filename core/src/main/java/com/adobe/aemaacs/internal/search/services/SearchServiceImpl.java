@@ -8,14 +8,17 @@ import java.util.Map;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import com.adobe.aemaacs.external.search.services.SearchCriteria;
 import com.adobe.aemaacs.external.search.services.SearchService;
+import com.day.cq.dam.api.DamConstants;
 import com.day.cq.search.PredicateGroup;
 import com.day.cq.search.Query;
 import com.day.cq.search.QueryBuilder;
+import com.day.cq.wcm.api.NameConstants;
 
 @Component(immediate = true, service = SearchService.class)
 public class SearchServiceImpl implements SearchService {
@@ -29,7 +32,7 @@ public class SearchServiceImpl implements SearchService {
 		List<String> pageList = new ArrayList<>();
 		predicates.put("type", "cq:PageContent");
 		predicates.put("path", searchCriteria.getSearchPath());
-		predicates.put("1_daterange.property", "cq:lastModified");
+		predicates.put("1_daterange.property", NameConstants.PN_PAGE_LAST_MOD);
 		predicates.put("1_daterange.lowerBound", searchCriteria.getStartDate());
 		predicates.put("1_daterange.lowerOperation", ">=");
 		predicates.put("1_daterange.upperOperation", "<=");
@@ -52,9 +55,9 @@ public class SearchServiceImpl implements SearchService {
 	public List<String> getAssets(SearchCriteria searchCriteria, Session session) {
 		Map<String, String> predicates = new HashMap<String, String>();
 		List<String> assetList = new ArrayList<>();
-		predicates.put("type", "dam:AssetContent");
+		predicates.put("type", DamConstants.NT_DAM_ASSETCONTENT);
 		predicates.put("path", searchCriteria.getSearchPath());
-		predicates.put("1_daterange.property", "jcr:lastModified");
+		predicates.put("1_daterange.property", JcrConstants.JCR_LASTMODIFIED);
 		predicates.put("1_daterange.lowerBound", searchCriteria.getStartDate());
 		predicates.put("1_daterange.lowerOperation", ">=");
 		predicates.put("1_daterange.upperOperation", "<=");

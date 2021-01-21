@@ -1,15 +1,19 @@
 package com.adobe.aemaacs.internal.content.services;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ModifiableValueMap;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -72,15 +76,15 @@ public class ReportJobConsumer extends AbstractJobConsumer implements JobConsume
 					"content-" + System.currentTimeMillis(), CONTENT_UPDATE_PACKAGE_GROUP);
 			
 			//commit report results
-			ModifiableValueMap modifiableValueMap = resolver.getResource(job.getProperty("path", String.class)).getChild("jcr:content").adaptTo(ModifiableValueMap.class);
-			modifiableValueMap.put("package", jcrPackage.getNode().getPath());
+			ModifiableValueMap modifiableValueMap = resolver.getResource(job.getProperty("path", String.class)).getChild(JcrConstants.JCR_CONTENT).adaptTo(ModifiableValueMap.class);
+			modifiableValueMap.put("package", (null == jcrPackage)? StringUtils.EMPTY : jcrPackage.getNode().getPath());
 			modifiableValueMap.put("addedFiles", addedFiles.toArray());
 			modifiableValueMap.put("deletedFiles",deletedFilterList.toArray());
 			if(resolver.hasChanges()) {
 				resolver.commit();
 			}
 			return JobResult.OK;
-		} catch (Exception e) {
+		} catch (IOException | LoginException | RepositoryException e) {
 			return JobResult.FAILED;
 		}
 	}

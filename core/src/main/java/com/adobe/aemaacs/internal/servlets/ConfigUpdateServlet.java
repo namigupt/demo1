@@ -35,6 +35,8 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.day.cq.wcm.api.NameConstants;
+
 @Component(
 		service = Servlet.class, 
 		property = { 
@@ -51,6 +53,7 @@ public class ConfigUpdateServlet extends SlingAllMethodsServlet {
 	
 	/**
 	 * {@inheritDoc}
+	 * @throws IOException 
 	 */
 	@Override
 	protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) throws IOException {
@@ -63,16 +66,16 @@ public class ConfigUpdateServlet extends SlingAllMethodsServlet {
 				valueMap.put(entry.getKey(),
 						entry.getValue() == null || entry.getValue().length == 0 ? "" : entry.getValue()[0]);
 			}
-			valueMap.put("cq:lastModified", Calendar.getInstance());
+			valueMap.put(NameConstants.PN_PAGE_LAST_MOD, Calendar.getInstance());
 			if (resolver.hasChanges()) {
 				resolver.commit();
 			}
 			response.setContentType("text/plain");
 			resp.send(response, true);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			resp.setStatus(500, e.getMessage());
 			resp.send(response, true);
-			log.error(e.getMessage(), e);
+			log.error("Unable to update/create Sync job.");
 		}
 
 

@@ -13,7 +13,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
@@ -28,6 +32,7 @@ import com.adobe.aemaacs.external.git.services.GitProfile;
 import com.adobe.aemaacs.external.git.services.GitWorkspace;
 import com.adobe.aemaacs.external.git.services.GitWrapperService;
 import com.adobe.aemaacs.external.packaging.services.ExportService;
+import com.adobe.aemaacs.internal.common.exception.ServiceException;
 
 public abstract class AbstractJobConsumer {
 
@@ -42,7 +47,7 @@ public abstract class AbstractJobConsumer {
 	}
 
 	protected GitProfile getGitProfile(Job job, ResourceResolver resolver) {
-		ValueMap gitConfigMap = resolver.getResource(job.getProperty("gitConfig", String.class)).getChild("jcr:content")
+		ValueMap gitConfigMap = resolver.getResource(job.getProperty("gitConfig", String.class)).getChild(JcrConstants.JCR_CONTENT)
 				.getValueMap();
 		return new GitProfile(gitConfigMap.get("username", String.class), gitConfigMap.get("password", String.class),
 				gitConfigMap.get("repoURL", String.class));
@@ -107,14 +112,19 @@ public abstract class AbstractJobConsumer {
 				default:
 					break;
 				}
-			} catch (Exception e) {
+			} catch (GitAPIException e) {
 				continue;
 			}
 		}
 	}
 	
 	protected void cleanup(GitWorkspace workspace) throws IOException {
-		Path path = Paths.get(workspace.getSourceFolder());
-		Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+		Path path = Paths.get(System.getProperty("java.io.tmpdir"), FilenameUtils.getName(StringUtils.substringAfterLast(workspace.getSourceFolder(), "/")));
+		try(Stream<Path> stream= Files.walk(path);){
+			stream.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+		} catch (IOException e) {
+			throw new ServiceException(e.getMessage(), e);
+		}
 	}
+	
 }

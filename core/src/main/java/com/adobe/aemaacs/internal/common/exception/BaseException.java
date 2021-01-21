@@ -19,8 +19,10 @@
  */
 package com.adobe.aemaacs.internal.common.exception;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class to handle the system exceptions so that the errors stack trace is
@@ -48,17 +50,17 @@ public class BaseException extends RuntimeException {
 	/**
 	 * Variable holds the error string.
 	 */
-	private final String errorString;
+	private String errorString = StringUtils.EMPTY;
 
 	/**
 	 * Variable holds the error code.
 	 */
-	private final String errorCode;
+	private String errorCode = StringUtils.EMPTY;
 
 	/**
 	 * Variable holds the error code List.
 	 */
-	private final List<String> errorCodeList;
+	private final List<String> errorCodeList = Collections.emptyList();
 
 	/**
 	 * Parameterized constructor. Takes exception message, code and object as
@@ -71,7 +73,6 @@ public class BaseException extends RuntimeException {
 		super(message);
 		this.errorString = message;
 		this.errorCode = eCode;
-		this.errorCodeList = new ArrayList<String>();
 		errorCodeList.add(eCode);
 	}
 
@@ -85,8 +86,7 @@ public class BaseException extends RuntimeException {
 	public BaseException(List<String> eCodes, String message) {
 		super(message);
 		this.errorString = message;
-		this.errorCode = "";
-		this.errorCodeList = eCodes;
+		errorCodeList.addAll(eCodes);
 	}
 
 	/**
@@ -99,8 +99,7 @@ public class BaseException extends RuntimeException {
 	public BaseException(List<String> eCodes, String message, Throwable e) {
 		super(message, e);
 		this.errorString = message;
-		this.errorCode = "";
-		this.errorCodeList = eCodes;
+		this.errorCodeList.addAll(eCodes);
 	}
 
 	/**
@@ -115,7 +114,6 @@ public class BaseException extends RuntimeException {
 		super(message, exc);
 		this.errorString = message;
 		this.errorCode = eCode;
-		this.errorCodeList = new ArrayList<String>();
 		errorCodeList.add(eCode);
 	}
 
@@ -128,8 +126,6 @@ public class BaseException extends RuntimeException {
 	public BaseException(String message, Throwable exc) {
 		super(message, exc);
 		this.errorString = message;
-		this.errorCode = "";
-		this.errorCodeList = null;
 	}
 
 	/**
@@ -156,6 +152,6 @@ public class BaseException extends RuntimeException {
 	 * @return the error code list
 	 */
 	public List<String> getErrorCodeList() {
-		return errorCodeList;
+		return Collections.unmodifiableList(this.errorCodeList);
 	}
 }

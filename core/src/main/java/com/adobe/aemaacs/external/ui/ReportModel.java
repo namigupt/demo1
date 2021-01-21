@@ -1,11 +1,13 @@
 package com.adobe.aemaacs.external.ui;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
@@ -19,8 +21,8 @@ public class ReportModel {
 	private SlingHttpServletRequest request;
 	
 	private String jcrPackage;
-	private List<String> addedFiles;
-	private List<String> DeletedFiles;
+	private List<String> addedFiles = Collections.emptyList();
+	private List<String> deletedFiles = Collections.emptyList();
 
 	@PostConstruct
 	protected void init() {
@@ -29,10 +31,12 @@ public class ReportModel {
 			return;
 		}
 		ResourceResolver resolver = this.request.getResourceResolver();
-		ValueMap valueMap = resolver.getResource(item).getChild("jcr:content").getValueMap();
+		ValueMap valueMap = resolver.getResource(item).getChild(JcrConstants.JCR_CONTENT).getValueMap();
 		this.jcrPackage = valueMap.containsKey("package") ? valueMap.get("package", String.class):null;
-		this.addedFiles = valueMap.containsKey("addedFiles") ? Arrays.asList(valueMap.get("addedFiles", String[].class)) : null;
-		this.DeletedFiles = valueMap.containsKey("deletedFiles") ? Arrays.asList(valueMap.get("deletedFiles", String[].class)) : null;
+		if(valueMap.containsKey("addedFiles")) 
+			this.addedFiles.addAll(Arrays.asList(valueMap.get("addedFiles", String[].class)));
+		if(valueMap.containsKey("DeletedFiles")) 
+			this.deletedFiles.addAll(Arrays.asList(valueMap.get("deletedFiles", String[].class)));
 	}
 
 	public String getJcrPackage() {
@@ -40,11 +44,11 @@ public class ReportModel {
 	}
 
 	public List<String> getAddedFiles() {
-		return addedFiles;
+		return Collections.unmodifiableList(this.addedFiles);
 	}
 
 	public List<String> getDeletedFiles() {
-		return DeletedFiles;
+		return Collections.unmodifiableList(this.deletedFiles);
 	}
 
 }

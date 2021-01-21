@@ -1,5 +1,6 @@
 package com.adobe.aemaacs.internal.content.services;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -11,11 +12,13 @@ import javax.jcr.Session;
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
 import org.apache.sling.event.jobs.Job;
 import org.apache.sling.event.jobs.consumer.JobConsumer;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -80,22 +83,24 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 			GitWorkspace workspace = super.checkoutCode(gitWrapperService, gitProfile, job);
 			try (Git git = workspace.getGitRepo()) {
 
-				JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver, "content-" + workspace.getBranchID(),
-						CONTENT_UPDATE_PACKAGE_GROUP);
-				Archive archive = exportService.getPackageArchive(jcrPackage);
+				try(JcrPackage jcrPackage = exportService.buildPackage(addedFiles, resolver, "content-" + workspace.getBranchID(),
+						CONTENT_UPDATE_PACKAGE_GROUP);){
+					Archive archive = exportService.getPackageArchive(jcrPackage);
+					
+					super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(), archive, artifactType);
+					
+					git.commit()
+					.setAuthor(job.getProperty("gitAuthor", String.class),
+							job.getProperty("gitAuthorEmail", String.class))
+					.setMessage(job.getProperty("commitMessage", String.class)).call();
+					
+					this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
+				}
 				
-				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(), archive, artifactType);
-				
-				git.commit()
-						.setAuthor(job.getProperty("gitAuthor", String.class),
-								job.getProperty("gitAuthorEmail", String.class))
-						.setMessage(job.getProperty("commitMessage", String.class)).call();
-
-				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
 			}
 			super.cleanup(workspace);
 			return JobResult.OK;
-		} catch (Exception e) {
+		} catch (IOException | GitAPIException | LoginException e) {
 			return JobResult.FAILED;
 		}
 	}
