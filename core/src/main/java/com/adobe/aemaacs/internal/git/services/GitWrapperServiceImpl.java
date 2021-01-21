@@ -3,7 +3,6 @@ package com.adobe.aemaacs.internal.git.services;
 import java.nio.file.Paths;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.RefSpec;
@@ -23,7 +22,7 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
 					.setDirectory(Paths.get(System.getProperty("java.io.tmpdir"),
-							FilenameUtils.getName(StringUtils.substringAfterLast(tmpFolder, "\\"))).toFile())
+							FilenameUtils.getName(tmpFolder)).toFile())
 					.call();
 			return git;
 		} catch (GitAPIException e) {
