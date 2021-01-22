@@ -1,18 +1,16 @@
 package com.adobe.aemaacs.internal.packaging.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
@@ -73,20 +71,12 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				StringBuilder filePathBuilder = new StringBuilder();
-				filePathBuilder.append(System.getProperty("java.io.tmpdir")).append("/")
-								.append(FilenameUtils.getName(sourceCodeWorkspace)).append("/")
-								.append("/ui.content/src/main/content/jcr_root")
-								.append(filter).append("/")
-								.append(intermediatePath);
-				File parentPath = Paths.get(FilenameUtils.getFullPath(filePathBuilder.toString()),
-						FilenameUtils.getName(filePathBuilder.toString())).toFile();
-				parentPath.mkdirs();
-
-				Files.copy(inputStream,
-						Paths.get(FilenameUtils.getFullPath(parentPath.getPath()),
-								FilenameUtils.getName(parentPath.getPath()), FilenameUtils.getName(name)),
-						StandardCopyOption.REPLACE_EXISTING);
+				Path parentPath = Path.of(sourceCodeWorkspace, "/ui.content/src/main/content/jcr_root",filter,intermediatePath);
+				parentPath.toFile().mkdirs();
+				Path path = Path.of(parentPath.toString(), name);
+				if(null != path) {
+					Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
 		} catch (IOException e) {
 			throw new ImpexException(e.getMessage(), "IMPEX103");

@@ -18,13 +18,14 @@ public class GitWrapperServiceImpl implements GitWrapperService {
 	@Override
 	public Git cloneRepo(GitProfile gitProfile, String tmpFolder) {
 		try {
+			Class.forName("javax.management.MalformedObjectNameException");
 			return Git.cloneRepository().setURI(gitProfile.getRepository())
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(gitProfile.getUserName(), gitProfile.getPassword()))
 					.setDirectory(Paths.get(System.getProperty("java.io.tmpdir"),
 							FilenameUtils.getName(tmpFolder)).toFile())
 					.call();
-		} catch (GitAPIException e) {
+		} catch (GitAPIException | ClassNotFoundException e) {
 			throw new GitException(e.getMessage(), "GIT101");
 		}
 	}
