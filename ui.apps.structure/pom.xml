@@ -48,6 +48,11 @@
                         <filter><root>/apps/wcm</root></filter>
                         <filter><root>/apps/msm</root></filter>
 
+                        <filter><root>/apps/cq/core</root></filter>
+                        <filter><root>/apps/cq/core/content</root></filter>
+                        <filter><root>/apps/cq/core/content/nav</root></filter>
+                        <filter><root>/apps/cq/core/content/nav/tools</root></filter>
+
                         <!-- Immutable context-aware configurations -->
                         <filter><root>/apps/settings</root></filter>
 
