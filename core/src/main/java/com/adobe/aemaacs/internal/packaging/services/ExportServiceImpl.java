@@ -76,11 +76,14 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				File parentPath = Paths
-						.get(FilenameUtils.getFullPath(sourceCodeWorkspace), FilenameUtils.getName(sourceCodeWorkspace),
-								"/ui.content/src/main/content/jcr_root", FilenameUtils.getFullPath(filter),
-								FilenameUtils.getName(filter), "/", FilenameUtils.getFullPath(intermediatePath))
-						.toFile();
+				StringBuilder filePathBuilder = new StringBuilder();
+				filePathBuilder.append(System.getProperty("java.io.tmpdir")).append("/")
+								.append(FilenameUtils.getName(sourceCodeWorkspace)).append("/")
+								.append("/ui.content/src/main/content/jcr_root")
+								.append(filter).append("/")
+								.append(intermediatePath);
+				File parentPath = Paths.get(FilenameUtils.getFullPath(filePathBuilder.toString()),
+						FilenameUtils.getName(filePathBuilder.toString())).toFile();
 				parentPath.mkdirs();
 
 				Files.copy(inputStream,
