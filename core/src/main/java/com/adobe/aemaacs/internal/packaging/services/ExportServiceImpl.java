@@ -33,9 +33,9 @@ import com.adobe.aemaacs.external.packaging.services.ImpexException;
 
 @Component(immediate = true, service = ExportService.class)
 public class ExportServiceImpl implements ExportService {
-
+	
 	@Reference
-	private transient Packaging packagingService;
+	private Packaging packagingService;
 
 	@Override
 	public PackageId buildPackage(List<String> filters, ResourceResolver resolver, String packageName,
@@ -46,12 +46,9 @@ public class ExportServiceImpl implements ExportService {
 		Session session = resolver.adaptTo(Session.class);
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
 		try(JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);) {
-			
-			if (null == jcrPackage) {
-				throw new IOException("Unable to create JCR Package");
-			}
-			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
-			if (null == jcrPackage.getDefinition()) {
+			JcrPackageDefinition jcrPackageDefinition = null;
+			jcrPackageDefinition = jcrPackage.getDefinition();
+			if (null == jcrPackageDefinition) {
 				throw new IOException("Unable to create JCR Package");
 			}
 			jcrPackageDefinition.setFilter(defaultWorkspaceFilter, false);

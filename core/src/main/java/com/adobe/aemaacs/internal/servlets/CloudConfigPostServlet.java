@@ -51,7 +51,7 @@ import com.day.cq.wcm.api.WCMException;
 		)
 public class CloudConfigPostServlet extends BasePostServlet {
 
-	private static final long serialVersionUID = 8148479541078850227L;
+	private static final long serialVersionUID = 1L;
 	private static final Logger log = LoggerFactory.getLogger(CloudConfigPostServlet.class);
 	
 	

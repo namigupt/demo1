@@ -57,36 +57,5 @@ public class SearchCriteria {
 		return result;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SearchCriteria other = (SearchCriteria) obj;
-		if (endDate == null) {
-			if (other.endDate != null)
-				return false;
-		} else if (!endDate.equals(other.endDate))
-			return false;
-		if (eventType == null) {
-			if (other.eventType != null)
-				return false;
-		} else if (!eventType.equals(other.eventType))
-			return false;
-		if (searchPath == null) {
-			if (other.searchPath != null)
-				return false;
-		} else if (!searchPath.equals(other.searchPath))
-			return false;
-		if (startDate == null) {
-			if (other.startDate != null)
-				return false;
-		} else if (!startDate.equals(other.startDate))
-			return false;
-		return true;
-	}
 
 }

@@ -36,10 +36,10 @@ public class ConfigurationEventHandler implements EventHandler {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference
-    private transient JobManager jobManager;
+    private JobManager jobManager;
     
     @Reference
-    private transient ResourceResolverFactory resolverFactory;
+    private ResourceResolverFactory resolverFactory;
 
 	@Override
 	public void handleEvent(Event event) {
@@ -49,11 +49,11 @@ public class ConfigurationEventHandler implements EventHandler {
 			PageModification pageModification = iterator.next();
 			ModificationType type = pageModification.getType();
 			String path = pageModification.getPath();
-			log.debug("Modification Type: ", pageModification.getType());
+			log.debug("Modification Type: {}", pageModification.getType());
 			if (StringUtils.startsWith(path, "/conf")
 					&& StringUtils.contains(path, "/settings/jobs/")) {
 				
-				Map<String, Object> param = new HashMap<String, Object>();
+				Map<String, Object> param = new HashMap<>();
 				param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
 				
 				try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
