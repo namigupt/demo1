@@ -7,11 +7,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.vault.fs.io.Archive;
+import org.apache.jackrabbit.vault.packaging.JcrPackage;
+import org.apache.jackrabbit.vault.packaging.JcrPackageManager;
 import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.Packaging;
+import org.apache.jackrabbit.vault.packaging.VaultPackage;
 import org.apache.sling.api.resource.LoginException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceResolverFactory;
@@ -19,6 +24,7 @@ import org.apache.sling.event.jobs.Job;
 import org.apache.sling.event.jobs.consumer.JobConsumer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.osgi.framework.ServiceException;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -41,23 +47,26 @@ import com.adobe.aemaacs.external.search.services.SearchService;
 public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer {
 
 	@Reference
-	private transient ResourceResolverFactory resolverFactory;
+	private  ResourceResolverFactory resolverFactory;
 	
 	@Reference
-	private transient SearchService searchService;
+	private  SearchService searchService;
 	
 	@Reference
-	private transient ExportService exportService;
+	private  ExportService exportService;
 	
 	@Reference
-	private transient GitWrapperService gitWrapperService;
+	private  GitWrapperService gitWrapperService;
+	
+	@Reference
+	private  Packaging packagingService;
 	
 	private static final String AUDIT_EVENTS_STORAGE_PAGE_EVENTS = "/var/audit/com.day.cq.wcm.core.page";
 	private static final String AUDIT_EVENTS_STORAGE_ASSET_EVENTS = "/var/audit/com.day.cq.dam";
 	
 	@Override
 	public JobResult process(Job job) {
-		Map<String, Object> param = new HashMap<String, Object>();
+		Map<String, Object> param = new HashMap<>();
 		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
 		String artifactType = StringUtils.substringAfterLast(job.getTopic(), "/");
 		try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
@@ -85,21 +94,29 @@ public class ImpexJobConsumer extends AbstractJobConsumer implements JobConsumer
 				PackageId packageId = exportService.buildPackage(addedFiles, resolver,
 						"content-" + workspace.getBranchID(), CONTENT_UPDATE_PACKAGE_GROUP);
 
-				Archive archive = exportService.getPackageArchive(packageId, resolver);
+				final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
+				try(JcrPackage jcrPackage = jcrPackageManager.open(packageId);){
+				VaultPackage vaultPackage = (null != jcrPackage) ?jcrPackage.getPackage():null;
+				if(null == vaultPackage) {
+					throw new ServiceException("Unable to open content package");
+				}
+				try (Archive archive = vaultPackage.getArchive();) {
 
-				super.commitArtifacts(exportService, addedFiles, deletedFilterList, git, workspace.getSourceFolder(),
-						archive, artifactType);
+					super.commitArtifacts(exportService, addedFiles, deletedFilterList, git,
+							workspace.getSourceFolder(), archive, artifactType);
 
-				git.commit()
-						.setAuthor(job.getProperty("gitAuthor", String.class),
-								job.getProperty("gitAuthorEmail", String.class))
-						.setMessage(job.getProperty("commitMessage", String.class)).call();
+					git.commit()
+							.setAuthor(job.getProperty("gitAuthor", String.class),
+									job.getProperty("gitAuthorEmail", String.class))
+							.setMessage(job.getProperty("commitMessage", String.class)).call();
 
-				this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
+					this.gitWrapperService.pushRepo(gitProfile, git, workspace.getBranchName());
+				}
+			}
 			}
 			super.cleanup(workspace);
 			return JobResult.OK;
-		} catch (IOException | GitAPIException | LoginException e) {
+		} catch (IOException | GitAPIException | LoginException | RepositoryException e) {
 			return JobResult.FAILED;
 		}
 	}

@@ -51,7 +51,6 @@ public class SearchCriteria {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((endDate == null) ? 0 : endDate.hashCode());
-		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
 		result = prime * result + ((searchPath == null) ? 0 : searchPath.hashCode());
 		result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
 		return result;
@@ -71,11 +70,6 @@ public class SearchCriteria {
 				return false;
 		} else if (!endDate.equals(other.endDate))
 			return false;
-		if (eventType == null) {
-			if (other.eventType != null)
-				return false;
-		} else if (!eventType.equals(other.eventType))
-			return false;
 		if (searchPath == null) {
 			if (other.searchPath != null)
 				return false;
@@ -88,5 +82,6 @@ public class SearchCriteria {
 			return false;
 		return true;
 	}
+
 
 }

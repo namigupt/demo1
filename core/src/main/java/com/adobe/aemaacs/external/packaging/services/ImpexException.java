@@ -1,8 +1,8 @@
 package com.adobe.aemaacs.external.packaging.services;
 
-import com.adobe.aemaacs.internal.common.exception.ServiceException;
+import com.adobe.aemaacs.internal.common.exception.BaseException;
 
-public class ImpexException extends ServiceException {
+public class ImpexException extends BaseException {
 
 	private static final long serialVersionUID = -3539692796953277913L;
 

@@ -1,8 +1,8 @@
 package com.adobe.aemaacs.internal.git.services;
 
-import com.adobe.aemaacs.internal.common.exception.ServiceException;
+import com.adobe.aemaacs.internal.common.exception.BaseException;
 
-public class GitException extends ServiceException {
+public class GitException extends BaseException {
 
 	private static final long serialVersionUID = -3539692796953277913L;
 

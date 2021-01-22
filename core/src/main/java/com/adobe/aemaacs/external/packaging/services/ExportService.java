@@ -12,8 +12,7 @@ public interface ExportService {
 
 	void deserializeEnteries(Archive archive, List<String> filterList, String sourceCodeWorkspace,String intermediatePath,String name);
 
-	void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace,String intermediatePath, String name);
-
-	Archive getPackageArchive(PackageId packageId, ResourceResolver resolver);
+	void deserializeEntry(Archive archive, String filter, String sourceCodeWorkspace, String intermediatePath,
+			String name);
 
 }

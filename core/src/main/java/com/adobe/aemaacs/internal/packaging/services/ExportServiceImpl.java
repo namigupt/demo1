@@ -1,18 +1,17 @@
 package com.adobe.aemaacs.internal.packaging.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
@@ -33,9 +32,9 @@ import com.adobe.aemaacs.external.packaging.services.ImpexException;
 
 @Component(immediate = true, service = ExportService.class)
 public class ExportServiceImpl implements ExportService {
-
+	
 	@Reference
-	private transient Packaging packagingService;
+	private Packaging packagingService;
 
 	@Override
 	public PackageId buildPackage(List<String> filters, ResourceResolver resolver, String packageName,
@@ -45,11 +44,9 @@ public class ExportServiceImpl implements ExportService {
 
 		Session session = resolver.adaptTo(Session.class);
 		final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-		try (JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);){
-			if (null == jcrPackage) {
-				throw new IOException("Unable to create JCR Package");
-			}
-			JcrPackageDefinition jcrPackageDefinition = jcrPackage.getDefinition();
+		try(JcrPackage jcrPackage = jcrPackageManager.create(packageGroup, packageName);) {
+			JcrPackageDefinition jcrPackageDefinition = null;
+			jcrPackageDefinition = jcrPackage.getDefinition();
 			if (null == jcrPackageDefinition) {
 				throw new IOException("Unable to create JCR Package");
 			}
@@ -59,17 +56,6 @@ public class ExportServiceImpl implements ExportService {
 			return jcrPackage.getPackage().getId();
 		} catch (RepositoryException | IOException | PackageException e) {
 			throw new ImpexException(e.getMessage(), "IMPEX101");
-		}
-	}
-
-	@Override
-	public Archive getPackageArchive(PackageId packageId, ResourceResolver resolver) {
-		try {
-			Session session = resolver.adaptTo(Session.class);
-			final JcrPackageManager jcrPackageManager = this.packagingService.getPackageManager(session);
-			return jcrPackageManager.open(packageId).getPackage().getArchive();
-		} catch (RepositoryException | IOException e) {
-			throw new ImpexException(e.getMessage(), "IMPEX102");
 		}
 	}
 
@@ -86,15 +72,13 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				File parentPath = Paths.get(FilenameUtils.getFullPath(sourceCodeWorkspace),
-						FilenameUtils.getName(sourceCodeWorkspace), "/ui.content/src/main/content/jcr_root", filter,
-						"/", FilenameUtils.getFullPath(intermediatePath)).toFile();
-				parentPath.mkdirs();
-
-				Files.copy(inputStream,
-						Paths.get(FilenameUtils.getFullPath(parentPath.getPath()),
-								FilenameUtils.getName(parentPath.getPath()), FilenameUtils.getName(name)),
-						StandardCopyOption.REPLACE_EXISTING);
+				Path parentPath = FileSystems.getDefault().getPath(sourceCodeWorkspace,
+						"/ui.content/src/main/content/jcr_root", filter, intermediatePath);
+				parentPath.toFile().mkdirs();
+				Path path = FileSystems.getDefault().getPath(parentPath.toString(), name);
+				if (null != path) {
+					Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
 		} catch (IOException e) {
 			throw new ImpexException(e.getMessage(), "IMPEX103");

@@ -24,9 +24,6 @@ import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.event.jobs.Job;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRefNameException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
 
 import com.adobe.aemaacs.external.git.services.GitProfile;
 import com.adobe.aemaacs.external.git.services.GitWorkspace;
@@ -39,6 +36,7 @@ public abstract class AbstractJobConsumer {
 	protected static final String DATE_FORMAT = "yyyy-MM-dd";
 	protected static final String TIMESTAMP_FORMAT = "yyyy-MM-dd-HH-mm-ss";
 	protected static final String CONTENT_UPDATE_PACKAGE_GROUP = "com.adobe.aemaacs.hol";
+	protected static final String PROJECT_CONTENT_MODULE_ROOT = "ui.content/src/main/content/jcr_root";
 
 	protected String formatDate(DateFormat dateFormat, int offset) {
 		Calendar calendar = Calendar.getInstance();
@@ -47,18 +45,20 @@ public abstract class AbstractJobConsumer {
 	}
 
 	protected GitProfile getGitProfile(Job job, ResourceResolver resolver) {
-		ValueMap gitConfigMap = resolver.getResource(job.getProperty("gitConfig", String.class)).getChild(JcrConstants.JCR_CONTENT)
-				.getValueMap();
+		ValueMap gitConfigMap = resolver.getResource(job.getProperty("gitConfig", String.class))
+				.getChild(JcrConstants.JCR_CONTENT).getValueMap();
 		return new GitProfile(gitConfigMap.get("username", String.class), gitConfigMap.get("password", String.class),
 				gitConfigMap.get("repoURL", String.class));
 
 	}
 
-	protected GitWorkspace checkoutCode(GitWrapperService gitWrapperService, GitProfile gitProfile, Job job) throws IOException, RefAlreadyExistsException,
-			RefNotFoundException, InvalidRefNameException, GitAPIException {
+	protected GitWorkspace checkoutCode(GitWrapperService gitWrapperService, GitProfile gitProfile, Job job)
+			throws IOException, GitAPIException {
 		// Checkout code
-		String folderName = Instant.now().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE);
-		String tmpFolder = Files.createTempDirectory(folderName).toString();
+		String tmpFolder = Files
+				.createTempDirectory(FilenameUtils
+						.getName(Instant.now().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE)))
+				.toString();
 		Git git = gitWrapperService.cloneRepo(gitProfile, tmpFolder);
 		String branchID = formatDate(new SimpleDateFormat(TIMESTAMP_FORMAT), 0);
 		String branchName = job.getProperty("branchPrefix", String.class).concat("/").concat(branchID);
@@ -67,25 +67,20 @@ public abstract class AbstractJobConsumer {
 		return new GitWorkspace(tmpFolder, branchID, branchName, git);
 	}
 
-	protected void commitArtifacts(ExportService exportService, List<String> addedFiles, List<String> deletedFiles, Git git,
-			String sourceFolder, Archive archive, String artifactType) {
-		addArtifacts(addedFiles, git, artifactType,archive, sourceFolder, exportService);
+	protected void commitArtifacts(ExportService exportService, List<String> addedFiles, List<String> deletedFiles,
+			Git git, String sourceFolder, Archive archive, String artifactType) {
+		addArtifacts(addedFiles, git, artifactType, archive, sourceFolder, exportService);
 		deleteArtifacts(addedFiles, deletedFiles, git, artifactType);
 	}
 
 	private void deleteArtifacts(List<String> addedFiles, List<String> deletedFiles, Git git, String artifactType) {
 		deletedFiles.stream().filter(item -> !addedFiles.contains(item)).forEach(item -> {
 			try {
-				git.rm().addFilepattern("ui.content/src/main/content/jcr_root" + item + "/.content.xml").call();
+				git.rm().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + item + "/.content.xml").call();
+				if (StringUtils.equalsIgnoreCase(artifactType, "assets")) {
 
-				switch (artifactType) {
-				case "assets":
-					git.rm().addFilepattern(
-							"ui.content/src/main/content/jcr_root" + item + "/_jcr_content/renditions/original").call();
-					break;
-
-				default:
-					break;
+					git.rm().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + item + "/_jcr_content/renditions/original")
+							.call();
 				}
 			} catch (GitAPIException e) {
 				return;
@@ -94,37 +89,34 @@ public abstract class AbstractJobConsumer {
 		});
 	}
 
-	private void addArtifacts(List<String> addedFiles, Git git, String artifactType, Archive archive, String sourceFolder, ExportService exportService) {
+	private void addArtifacts(List<String> addedFiles, Git git, String artifactType, Archive archive,
+			String sourceFolder, ExportService exportService) {
 		for (String item : addedFiles) {
 			try {
 				exportService.deserializeEntry(archive, item, sourceFolder, "", ".content.xml");
-				git.add().addFilepattern("ui.content/src/main/content/jcr_root" + item + "/.content.xml").call();
+				git.add().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + item + "/.content.xml").call();
 
-				switch (artifactType) {
-				case "assets":
+				if (StringUtils.equalsIgnoreCase(artifactType, "assets")) {
+
 					exportService.deserializeEntry(archive, item, sourceFolder, "_jcr_content/renditions/", "original");
-					git.add()
-							.addFilepattern(
-									"ui.content/src/main/content/jcr_root" + item + "/_jcr_content/renditions/original")
+					git.add().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + item + "/_jcr_content/renditions/original")
 							.call();
-					break;
 
-				default:
-					break;
 				}
 			} catch (GitAPIException e) {
-				continue;
+				throw new ServiceException(e.getMessage(), e);
 			}
 		}
 	}
-	
+
 	protected void cleanup(GitWorkspace workspace) throws IOException {
-		Path path = Paths.get(System.getProperty("java.io.tmpdir"), FilenameUtils.getName(StringUtils.substringAfterLast(workspace.getSourceFolder(), "/")));
-		try(Stream<Path> stream= Files.walk(path);){
+		Path path = Paths.get(System.getProperty("java.io.tmpdir"),
+				FilenameUtils.getName(StringUtils.substringAfterLast(workspace.getSourceFolder(), "/")));
+		try (Stream<Path> stream = Files.walk(path);) {
 			stream.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 		} catch (IOException e) {
 			throw new ServiceException(e.getMessage(), e);
 		}
 	}
-	
+
 }

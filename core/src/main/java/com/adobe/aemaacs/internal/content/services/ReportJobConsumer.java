@@ -36,22 +36,24 @@ import com.adobe.aemaacs.external.search.services.SearchService;
 public class ReportJobConsumer extends AbstractJobConsumer implements JobConsumer {
 
 	@Reference
-	private transient ResourceResolverFactory resolverFactory;
+	private ResourceResolverFactory resolverFactory;
 	
 	@Reference
-	private transient SearchService searchService;
+	private SearchService searchService;
 	
 	@Reference
-	private transient ExportService exportService;
+	private ExportService exportService;
 	
 	private static final String AUDIT_EVENTS_STORAGE_PAGE_EVENTS = "/var/audit/com.day.cq.wcm.core.page";
 	private static final String AUDIT_EVENTS_STORAGE_ASSET_EVENTS = "/var/audit/com.day.cq.dam";
+	private static final String PAGES = "pages";
+	private static final String ASSETS = "assets";
 	
 	@Override
 	public JobResult process(Job job) {
-		Map<String, Object> param = new HashMap<String, Object>();
+		Map<String, Object> param = new HashMap<>();
 		param.put(ResourceResolverFactory.SUBSERVICE, "read-write-service");
-		String artifactType = StringUtils.startsWith(job.getProperty("contentRoot", String.class), "/content/dam")?"assets":"pages";
+		String artifactType = StringUtils.startsWith(job.getProperty("contentRoot", String.class), "/content/dam")?ASSETS:PAGES;
 		
 		try (ResourceResolver resolver = this.resolverFactory.getServiceResourceResolver(param);) {
 			DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
@@ -62,8 +64,8 @@ public class ReportJobConsumer extends AbstractJobConsumer implements JobConsume
 			searchCriteria.setEventType(artifactType);
 			List<String> addedFiles = this.searchService.getArtifacts(searchCriteria, session);
 
-			searchCriteria.setEventType(artifactType.equals("pages") ? "PageDeleted" : "ASSET_REMOVED");
-			searchCriteria.setSearchPath(artifactType.equals("pages")
+			searchCriteria.setEventType(artifactType.equals(PAGES) ? "PageDeleted" : "ASSET_REMOVED");
+			searchCriteria.setSearchPath(artifactType.equals(PAGES)
 					? AUDIT_EVENTS_STORAGE_PAGE_EVENTS.concat(searchCriteria.getSearchPath())
 					: AUDIT_EVENTS_STORAGE_ASSET_EVENTS.concat(searchCriteria.getSearchPath()));
 			

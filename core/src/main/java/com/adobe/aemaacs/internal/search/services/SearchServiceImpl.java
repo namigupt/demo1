@@ -1,6 +1,7 @@
 package com.adobe.aemaacs.internal.search.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,19 +25,19 @@ import com.day.cq.wcm.api.NameConstants;
 public class SearchServiceImpl implements SearchService {
 
 	@Reference
-	private transient QueryBuilder queryBuilder;
+	private QueryBuilder queryBuilder;
 
 	@Override
 	public List<String> getPages(SearchCriteria searchCriteria, Session session) {
-		Map<String, String> predicates = new HashMap<String, String>();
+		Map<String, String> predicates = new HashMap<>();
 		List<String> pageList = new ArrayList<>();
 		predicates.put("type", "cq:PageContent");
 		predicates.put("path", searchCriteria.getSearchPath());
-		predicates.put("1_daterange.property", NameConstants.PN_PAGE_LAST_MOD);
-		predicates.put("1_daterange.lowerBound", searchCriteria.getStartDate());
-		predicates.put("1_daterange.lowerOperation", ">=");
-		predicates.put("1_daterange.upperOperation", "<=");
-		predicates.put("1_daterange.upperBound", searchCriteria.getEndDate());
+		predicates.put(Constants.DATE_RANGE_PROPERTY, NameConstants.PN_PAGE_LAST_MOD);
+		predicates.put(Constants.DATE_RANGE_LOWER_BOUND, searchCriteria.getStartDate());
+		predicates.put(Constants.DATE_RANGE_LOWER_OPERATION, ">=");
+		predicates.put(Constants.DATE_RANGE_UPPER_OPERATION, "<=");
+		predicates.put(Constants.DATE_RANGE_UPPER_BOUND, searchCriteria.getEndDate());
 		PredicateGroup pg = PredicateGroup.create(predicates);
 		Query query = this.queryBuilder.createQuery(pg, session);
 
@@ -53,15 +54,15 @@ public class SearchServiceImpl implements SearchService {
 
 	@Override
 	public List<String> getAssets(SearchCriteria searchCriteria, Session session) {
-		Map<String, String> predicates = new HashMap<String, String>();
+		Map<String, String> predicates = new HashMap<>();
 		List<String> assetList = new ArrayList<>();
 		predicates.put("type", DamConstants.NT_DAM_ASSETCONTENT);
 		predicates.put("path", searchCriteria.getSearchPath());
-		predicates.put("1_daterange.property", JcrConstants.JCR_LASTMODIFIED);
-		predicates.put("1_daterange.lowerBound", searchCriteria.getStartDate());
-		predicates.put("1_daterange.lowerOperation", ">=");
-		predicates.put("1_daterange.upperOperation", "<=");
-		predicates.put("1_daterange.upperBound", searchCriteria.getEndDate());
+		predicates.put(Constants.DATE_RANGE_PROPERTY, JcrConstants.JCR_LASTMODIFIED);
+		predicates.put(Constants.DATE_RANGE_LOWER_BOUND, searchCriteria.getStartDate());
+		predicates.put(Constants.DATE_RANGE_LOWER_OPERATION, ">=");
+		predicates.put(Constants.DATE_RANGE_UPPER_OPERATION, "<=");
+		predicates.put(Constants.DATE_RANGE_UPPER_BOUND, searchCriteria.getEndDate());
 		PredicateGroup pg = PredicateGroup.create(predicates);
 		Query query = this.queryBuilder.createQuery(pg, session);
 
@@ -78,15 +79,15 @@ public class SearchServiceImpl implements SearchService {
 
 	@Override
 	public List<String> getDeletedArtifacts(SearchCriteria searchCriteria, Session session) {
-		Map<String, String> predicates = new HashMap<String, String>();
+		Map<String, String> predicates = new HashMap<>();
 		List<String> artifactList = new ArrayList<>();
 		predicates.put("type", "cq:AuditEvent");
 		predicates.put("path", searchCriteria.getSearchPath());
-		predicates.put("1_daterange.property", "cq:time");
-		predicates.put("1_daterange.lowerBound", searchCriteria.getStartDate());
-		predicates.put("1_daterange.lowerOperation", ">=");
-		predicates.put("1_daterange.upperOperation", "<=");
-		predicates.put("1_daterange.upperBound", searchCriteria.getEndDate());
+		predicates.put(Constants.DATE_RANGE_PROPERTY, "cq:time");
+		predicates.put(Constants.DATE_RANGE_LOWER_BOUND, searchCriteria.getStartDate());
+		predicates.put(Constants.DATE_RANGE_LOWER_OPERATION, ">=");
+		predicates.put(Constants.DATE_RANGE_UPPER_OPERATION, "<=");
+		predicates.put(Constants.DATE_RANGE_UPPER_BOUND, searchCriteria.getEndDate());
 		predicates.put("property", "cq:type");
 		predicates.put("property.value", searchCriteria.getEventType());
 		PredicateGroup pg = PredicateGroup.create(predicates);
@@ -114,7 +115,7 @@ public class SearchServiceImpl implements SearchService {
 			return getPages(searchCriteria, session);
 			
 		default:
-			return null;
+			return Collections.emptyList();
 		}
 	}
 }

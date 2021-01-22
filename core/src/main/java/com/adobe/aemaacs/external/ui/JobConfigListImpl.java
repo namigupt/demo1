@@ -49,9 +49,9 @@ public class JobConfigListImpl implements JobConfigList {
 					+ template.replace("'", "''") + "'";
 			log.debug("Finding cloud configurations with: {}", query);
 
-			slingRequest.getResourceResolver().findResources(query, Query.JCR_SQL2).forEachRemaining(ccr -> {
-				configs.add(ccr.adaptTo(Configuration.class));
-			});
+			slingRequest.getResourceResolver().findResources(query, Query.JCR_SQL2).forEachRemaining(ccr -> 
+				configs.add(ccr.adaptTo(Configuration.class))
+			);
 		} else {
 			log.debug("Suffix not specified");
 

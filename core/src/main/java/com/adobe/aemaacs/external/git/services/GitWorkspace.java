@@ -60,16 +60,6 @@ public class GitWorkspace {
 		if (branchID == null) {
 			if (other.branchID != null)
 				return false;
-		} else if (!branchID.equals(other.branchID))
-			return false;
-		if (branchName == null) {
-			if (other.branchName != null)
-				return false;
-		} else if (!branchName.equals(other.branchName))
-			return false;
-		if (gitRepo == null) {
-			if (other.gitRepo != null)
-				return false;
 		} else if (!gitRepo.equals(other.gitRepo))
 			return false;
 		if (sourceFolder == null) {
