@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspaceFilter version="1.0">
     <filter root="/apps/aemaacs-administration-app"/>
-    <filter root="/apps/cq/core/content/nav/tools/deployment/content-impex"/>
-    <filter root="/apps/cq/core/content/nav/tools/general/content-reports"/>    
-    <filter root="/apps/cq/core/content/nav/tools/cloudservices/cloud-mgr-git-config"/>
+    <filter root="/apps/cq/core/content/nav/tools" mode="merge"/>
 </workspaceFilter>
