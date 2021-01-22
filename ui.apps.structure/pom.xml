@@ -41,6 +41,9 @@
                         <!-- Common overlay roots -->
                         <filter><root>/apps/sling</root></filter>
                         <filter><root>/apps/cq</root></filter>
+                        <filter><root>/apps/cq/core/content/nav/tools/deployment/content-impex</root></filter>
+    					<filter><root>/apps/cq/core/content/nav/tools/general/content-reports</root></filter>  
+    					<filter><root>/apps/cq/core/content/nav/tools/cloudservices/cloud-mgr-git-config</root></filter>
                         <filter><root>/apps/dam</root></filter>
                         <filter><root>/apps/wcm</root></filter>
                         <filter><root>/apps/msm</root></filter>
