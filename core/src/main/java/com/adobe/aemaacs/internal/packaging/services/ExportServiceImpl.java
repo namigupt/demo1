@@ -3,6 +3,7 @@ package com.adobe.aemaacs.internal.packaging.services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -71,10 +72,11 @@ public class ExportServiceImpl implements ExportService {
 					throw new IOException("Unable to read entry in the archive");
 				}
 				// Create Parent Path.
-				Path parentPath = Path.of(sourceCodeWorkspace, "/ui.content/src/main/content/jcr_root",filter,intermediatePath);
+				Path parentPath = FileSystems.getDefault().getPath(sourceCodeWorkspace,
+						"/ui.content/src/main/content/jcr_root", filter, intermediatePath);
 				parentPath.toFile().mkdirs();
-				Path path = Path.of(parentPath.toString(), name);
-				if(null != path) {
+				Path path = FileSystems.getDefault().getPath(parentPath.toString(), name);
+				if (null != path) {
 					Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
 				}
 			}
