@@ -11,7 +11,7 @@ import com.drew.lang.annotations.NotNull;
  *
  */
 @ConsumerType
-public interface CloudConfigurationList {
+public interface ConfigurationList {
 
   /**
    * Retrieve the list of CloudConfigurations for the specified request.
