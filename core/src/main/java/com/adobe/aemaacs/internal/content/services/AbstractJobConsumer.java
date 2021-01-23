@@ -102,6 +102,9 @@ public abstract class AbstractJobConsumer {
 					git.add().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + item + "/_jcr_content/renditions/original")
 							.call();
 
+				}else if(StringUtils.startsWith(item, "/content/experience-fragments")) {
+					exportService.deserializeEntry(archive, StringUtils.substringBeforeLast(item,"/"), sourceFolder, "", ".content.xml");
+					git.add().addFilepattern(PROJECT_CONTENT_MODULE_ROOT + StringUtils.substringBeforeLast(item,"/") + "/.content.xml").call();
 				}
 			} catch (GitAPIException e) {
 				throw new ServiceException(e.getMessage(), e);
