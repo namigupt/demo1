@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspaceFilter version="1.0">
-    <filter root="/conf/aemformscs" mode="merge"/>
-    <filter root="/content/aemformscs" mode="merge"/>
-    <filter root="/content/dam/aemformscs" mode="merge"/>
-    <filter root="/content/experience-fragments/aemformscs" mode="merge"/>
+    <filter root="/conf/aemaacs-administration-app" mode="merge"/>
 </workspaceFilter>
