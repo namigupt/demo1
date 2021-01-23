@@ -5,5 +5,5 @@
     <filter root="/apps/aemaacs-administration-app/content"/>
     <filter root="/apps/aemaacs-administration-app/templates"/>
     <filter root="/apps/aemaacs-administration-app/i18n"/>
-    <filter root="/apps/cq" mode="merge"/>
+    <filter root="/apps/cq"/>
 </workspaceFilter>
