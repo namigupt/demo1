@@ -78,7 +78,7 @@ public class ReportJobConsumer extends AbstractJobConsumer implements JobConsume
 			
 			//commit report results
 			ModifiableValueMap modifiableValueMap = resolver.getResource(job.getProperty("path", String.class)).getChild(JcrConstants.JCR_CONTENT).adaptTo(ModifiableValueMap.class);
-			modifiableValueMap.put("package", (null == jcrPackage )? StringUtils.EMPTY : jcrPackage.getDownloadName());
+			modifiableValueMap.put("package", (null == jcrPackage )? StringUtils.EMPTY : "/etc/packages/".concat(jcrPackage.getGroup()).concat("/").concat(jcrPackage.getDownloadName()));
 			modifiableValueMap.put("addedFiles", addedFiles.toArray());
 			modifiableValueMap.put("deletedFiles",deletedFilterList.toArray());
 			if(resolver.hasChanges()) {

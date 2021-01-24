@@ -1,5 +1,6 @@
 package com.adobe.aemaacs.external.ui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,8 +22,8 @@ public class ReportModel {
 	private SlingHttpServletRequest request;
 	
 	private String jcrPackage;
-	private List<String> addedFiles = Collections.emptyList();
-	private List<String> deletedFiles = Collections.emptyList();
+	private List<String> addedFiles = new ArrayList<>();
+	private List<String> deletedFiles = new ArrayList<>();
 
 	@PostConstruct
 	protected void init() {

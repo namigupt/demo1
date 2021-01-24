@@ -2,7 +2,10 @@
 <jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
     jcr:primaryType="nt:unstructured">
     <tools jcr:primaryType="nt:unstructured">
-        <deployment jcr:primaryType="nt:unstructured">
+        <admin-tools
+            jcr:primaryType="nt:unstructured"
+            jcr:title="Admin Tools"
+            id="hol-admin-tools">
             <content-impex
                 jcr:description="Manage content import/export"
                 jcr:primaryType="nt:unstructured"
@@ -11,16 +14,6 @@
                 icon="boxExport"
                 id="granite-packages"
                 target="_blank"/>
-        </deployment>
-        <cloudservices jcr:primaryType="nt:unstructured">
-            <cloud-mgr-git-config
-                jcr:description="Cloud Manager - GIT Config"
-                jcr:primaryType="nt:unstructured"
-                jcr:title="Cloud Manager - GIT Config"
-                href="/apps/aemaacs-administration-app/content/cloudservice/console.html/apps/aemaacs-administration-app/templates/admin/gitcloudconfig"
-                icon="cloud"/>
-        </cloudservices>
-        <general jcr:primaryType="nt:unstructured">
             <content-reports
                 jcr:description="Reports - Content"
                 jcr:primaryType="nt:unstructured"
@@ -29,6 +22,14 @@
                 icon="report"
                 id="granite-packages"
                 target="_blank"/>
-        </general>
+        </admin-tools>
+        <cloudservices jcr:primaryType="nt:unstructured">
+            <cloud-mgr-git-config
+                jcr:description="Cloud Manager - GIT Config"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Cloud Manager - GIT Config"
+                href="/apps/aemaacs-administration-app/content/cloudservice/console.html/apps/aemaacs-administration-app/templates/admin/gitcloudconfig"
+                icon="cloud"/>
+        </cloudservices>
     </tools>
 </jcr:root>
