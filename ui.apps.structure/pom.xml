@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.adobe.aemaacs</groupId>
         <artifactId>aemaacs-administration-app</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -28,28 +28,22 @@
             <plugin>
                 <groupId>org.apache.jackrabbit</groupId>
                 <artifactId>filevault-package-maven-plugin</artifactId>
-                <extensions>true</extensions>
                 <configuration>
-                    <properties>
-                        <cloudManagerTarget>none</cloudManagerTarget>
-                    </properties>
                     <filters>
 
                         <!-- /apps root -->
                         <filter><root>/apps</root></filter>
+                        <filter><root>/apps/aemaacs-administration-app</root></filter>
 
                         <!-- Common overlay roots -->
                         <filter><root>/apps/sling</root></filter>
-                        <filter><root>/apps/cq</root></filter>
-                       
-                        <filter><root>/apps/dam</root></filter>
-                        <filter><root>/apps/wcm</root></filter>
-                        <filter><root>/apps/msm</root></filter>
-
                         <filter><root>/apps/cq/core</root></filter>
                         <filter><root>/apps/cq/core/content</root></filter>
                         <filter><root>/apps/cq/core/content/nav</root></filter>
                         <filter><root>/apps/cq/core/content/nav/tools</root></filter>
+                        <filter><root>/apps/dam</root></filter>
+                        <filter><root>/apps/wcm</root></filter>
+                        <filter><root>/apps/msm</root></filter>
 
                         <!-- Immutable context-aware configurations -->
                         <filter><root>/apps/settings</root></filter>
